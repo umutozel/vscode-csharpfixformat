@@ -1,0 +1,74 @@
+{
+    "name": "csharpfixformat",
+    "displayName": "C# FixFormat",
+    "description": "Fix format of usings",
+    "icon": "icon.svg",
+    "version": "0.0.1",
+    "publisher": "Leopotam",
+    "engines": {
+        "vscode": "^1.8.0"
+    },
+    "categories": [
+        "Formatters"
+    ],
+    "activationEvents": [
+        "onCommand:csharpfixformat.process"
+    ],
+    "author": {
+        "name": "Leopotam",
+        "email": "leopotam@gmail.com"
+    },
+    "main": "./out/src/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "csharpfixformat.process",
+                "title": "CSharp: Sort usings"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "resourceLangId == csharp",
+                    "command": "csharpfixformat.process",
+                    "group": "modification"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "C# FixFormat configuration",
+            "properties": {
+                "csharpfixformat.sortUsingsSystemFirst": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Put System.xxx namespaces first at usings list"
+                }
+            }
+        }
+    },
+    "keywords": [
+        "csharp",
+        "C#",
+        "sort",
+        "using"
+    ],
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "devDependencies": {
+        "typescript": "^2.1.0",
+        "vscode": "^1.0.0",
+        "@types/node": "^7.0.0"
+    },
+    "license": "MIT",
+    "homepage": "https://github.com/Leopotam/vscode-csharpfixformat",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Leopotam/vscode-csharpfixformat"
+    },
+    "bugs": {
+        "url": "https://github.com/Leopotam/vscode-csharpfixformat/issues"
+    }
+}
