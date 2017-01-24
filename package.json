@@ -3,7 +3,7 @@
     "displayName": "C# FixFormat",
     "description": "Fix format of usings",
     "icon": "icon.svg",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "Leopotam",
     "engines": {
         "vscode": "^1.8.0"
