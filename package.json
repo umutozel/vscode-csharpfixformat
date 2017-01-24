@@ -67,5 +67,8 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/Leopotam/vscode-csharpfixformat"
+    },
+    "bugs": {
+        "url": "https://github.com/Leopotam/vscode-csharpfixformat/issues"
     }
 }
