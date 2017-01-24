@@ -4,11 +4,11 @@ export interface FormatConfig {
     sortUsingsSystemFirst: boolean;
 }
 
-export function format(content: string, options: FormatConfig): string {
+export function process(content: string, options: FormatConfig): string {
     const input = content.split('\n');
     const usingRegex = /using \w+[\.\w]*;/;
     const usings = [];
-    let output = '';
+    const output = [];
     let firstLine = -1;
     let indent = '';
     let lineCount = 0;
@@ -44,13 +44,13 @@ export function format(content: string, options: FormatConfig): string {
                     return a < b ? -1 : (a > b ? 1 : 0);
                 });
                 for (let i = 0; i < lineCount; i++) {
-                    output += `${lineId > 0 ? '\n' : ''}${indent}${usings[i]};`;
+                    output.push(`${indent}${usings[i]};`);
                 }
                 lineCount = 0;
                 firstLine = -1;
             }
-            output += `${lineId > 0 ? '\n' : ''}${line}`;
+            output.push(line);
         }
     }
-    return output;
+    return output.join('\n');
 }
