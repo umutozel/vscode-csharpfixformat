@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (doc.languageId === 'csharp') {
                 return editor.edit(edit => {
                     const cfg = vscode.workspace.getConfiguration();
-                    const options: formatting.FormatConfig = {
+                    const options: formatting.IFormatConfig = {
                         tabSize: cfg.get<number>('editor.tabSize'),
                         sortUsingsSystemFirst: cfg.get<boolean>('csharpfixformat.sortUsingsSystemFirst'),
                         emptyLinesInRowLimit: cfg.get<number>('csharpfixformat.emptyLinesInRowLimit'),

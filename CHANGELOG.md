@@ -1,3 +1,7 @@
+* v0.0.4
+  * Comment skipping. Dont use tail comments at using line - they will be removed!
+  No limits for other places for tail comments.
+  * Indent of wrapped lines with not finished assign expression should be fixed.
 * v0.0.3
   * "Sort usings" command renamed to "Fix format".
   * "csharpfixformat.indentEnabled" option was added.

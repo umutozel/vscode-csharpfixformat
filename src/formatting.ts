@@ -1,6 +1,6 @@
 'use strict';
 
-export interface FormatConfig {
+export interface IFormatConfig {
     tabSize: number,
     sortUsingsSystemFirst: boolean;
     emptyLinesInRowLimit: number;
@@ -11,9 +11,11 @@ const getIndent = (amount: number, tabSize: number): string => {
     return ' '.repeat(tabSize * amount);
 }
 
-export function process(content: string, options: FormatConfig): string {
+export function process(content: string, options: IFormatConfig): string {
     const input = content.split('\n');
     const usingRegex = /^using \w+[\.\w]*;/;
+    const StringRegex = /"[^\\"]*(?:\\.[^\\"]*)*"/g;
+    const CharRegex = /'[^\\']*(?:\\.[^\\']*)*'/g;
     const usings = [];
     const output = [];
     let indentLevel = 0;
@@ -21,15 +23,50 @@ export function process(content: string, options: FormatConfig): string {
     let nextIndentLevel: number;
     let isIndentDirty: boolean;
     let emptyLinesCount = 0;
+    let assignLevel = 0;
+    let mlCommentOpened = false;
 
     for (let lineId = 0; lineId < input.length; lineId++) {
         const rawLine = input[lineId];
-        const line = rawLine.trim();
-        // detect usings
-        if (usingRegex.test(line)) {
-            let usingExpr = line.match(usingRegex)[0];
-            if (line.length > usingExpr.length) {
-                input.splice(lineId + 1, 0, line.substr(usingExpr.length));
+        const trimmedLine = rawLine.trim();
+        let noStringsLine = trimmedLine.replace(StringRegex, '""').replace(CharRegex, "''");
+        // comments processing.
+        let mlCommentStart = noStringsLine.indexOf('/*');
+        const mlCommentEnd = noStringsLine.indexOf('*/');
+        let slCommentStart = noStringsLine.indexOf('//');
+        if (mlCommentOpened) {
+            if (mlCommentEnd !== -1) {
+                noStringsLine = noStringsLine.substr(mlCommentEnd + 1);
+                mlCommentOpened = false;
+            } else {
+                // we are inside multiline comment.
+                noStringsLine = '';
+            }
+        }
+        if (!mlCommentOpened && (mlCommentStart !== -1 || slCommentStart !== -1)) {
+            if (mlCommentStart === -1) {
+                mlCommentStart = Number.MAX_SAFE_INTEGER;
+            }
+            if (slCommentStart === -1) {
+                slCommentStart = Number.MAX_SAFE_INTEGER;
+            }
+            if (mlCommentStart < slCommentStart) {
+                mlCommentOpened = true;
+                noStringsLine = noStringsLine.substr(0, mlCommentStart);
+            } else {
+                if (slCommentStart != 0) {
+                    noStringsLine = noStringsLine.substr(0, slCommentStart);
+                }
+            }
+        }
+        // sort usings.
+        if (usingRegex.test(noStringsLine)) {
+            let usingExpr = noStringsLine.match(usingRegex)[0];
+            if (noStringsLine.length > usingExpr.length) {
+                const endLine = noStringsLine.substr(usingExpr.length).trim();
+                if (endLine.length > 0) {
+                    input.splice(lineId + 1, 0, endLine);
+                }
             }
             usingExpr = usingExpr.substr(0, usingExpr.length - 1);
             usings.push(usingExpr);
@@ -53,8 +90,8 @@ export function process(content: string, options: FormatConfig): string {
             }
             usings.length = 0;
         }
-        // emptyLinesInRowLimit
-        if (line.length === 0) {
+        // emptyLinesInRowLimit option processing.
+        if (trimmedLine.length === 0) {
             if (options.emptyLinesInRowLimit >= 0) {
                 if (emptyLinesCount >= options.emptyLinesInRowLimit) {
                     continue;
@@ -64,36 +101,45 @@ export function process(content: string, options: FormatConfig): string {
         } else {
             emptyLinesCount = 0;
         }
-
+        // indentEnabled option processing.
         if (options.indentEnabled) {
-            isIndentDirty = line.length > 0 && (line[0] === '}' || line[0] === ')');
-            if (!isIndentDirty) {
-                output.push(`${indent}${line}`);
+            if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
+                output.push(`${getIndent(indentLevel - 1, options.tabSize)}${trimmedLine}`);
+            } else {
+                output.push(`${indent}${trimmedLine}`);
             }
         } else {
             output.push(rawLine);
         }
 
         nextIndentLevel = indentLevel;
-        for (var c = 0; c < line.length; c++) {
-            switch (line[c]) {
+        for (var c = 0; c < noStringsLine.length; c++) {
+            switch (noStringsLine[c]) {
                 case '{':
                 case '(':
                     nextIndentLevel++;
                     break;
+                case '=':
+                    if (c == noStringsLine.length - 1) {
+                        assignLevel++;
+                        nextIndentLevel++;
+                    }
+                    break;
                 case '}':
                 case ')':
                     nextIndentLevel--;
+                    break;
+                case ';':
+                    if (assignLevel > 0) {
+                        assignLevel--;
+                        nextIndentLevel--;
+                    }
                     break;
             }
         };
         if (nextIndentLevel !== indentLevel) {
             indentLevel = nextIndentLevel < 0 ? 0 : nextIndentLevel;
             indent = getIndent(indentLevel, options.tabSize);
-        }
-
-        if (options.indentEnabled && isIndentDirty) {
-            output.push(`${indent}${line}`);
         }
     }
     return output.join('\n');
