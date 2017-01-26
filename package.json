@@ -1,9 +1,9 @@
 {
     "name": "csharpfixformat",
     "displayName": "C# FixFormat",
-    "description": "Fix format of usings",
+    "description": "Fix format of usings / indents / empty lines",
     "icon": "icon.svg",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "Leopotam",
     "engines": {
         "vscode": "^1.8.0"
@@ -23,7 +23,7 @@
         "commands": [
             {
                 "command": "csharpfixformat.process",
-                "title": "CSharp: Sort usings"
+                "title": "CSharp: Fix format"
             }
         ],
         "menus": {
@@ -41,20 +41,31 @@
                 "csharpfixformat.sortUsingsSystemFirst": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Put System.xxx namespaces first at usings list"
+                    "description": "Put System.xxx namespaces first at usings list."
+                },
+                "csharpfixformat.indentEnabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Indent all lines with respect of parentheses / braces."
+                },
+                "csharpfixformat.emptyLinesInRowLimit": {
+                    "type": "number",
+                    "default": 1,
+                    "description": "Amount of empty lines in row. Negative for disable."
                 }
             }
         }
     },
     "keywords": [
-        "csharp",
         "C#",
+        "csharp",
         "sort",
-        "using"
+        "using",
+        "format"
     ],
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
+        "compile": "tsc -w -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "devDependencies": {
