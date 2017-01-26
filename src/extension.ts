@@ -12,7 +12,10 @@ export function activate(context: vscode.ExtensionContext) {
                 return editor.edit(edit => {
                     const cfg = vscode.workspace.getConfiguration();
                     const options: formatting.FormatConfig = {
-                        sortUsingsSystemFirst: cfg.get<boolean>('csharpfixformat.sortUsingsSystemFirst')
+                        tabSize: cfg.get<number>('editor.tabSize'),
+                        sortUsingsSystemFirst: cfg.get<boolean>('csharpfixformat.sortUsingsSystemFirst'),
+                        emptyLinesInRowLimit: cfg.get<number>('csharpfixformat.emptyLinesInRowLimit'),
+                        indentEnabled: cfg.get<boolean>('csharpfixformat.indentEnabled')
                     };
                     const selection = new vscode.Range(0, 0, doc.lineCount - 1, doc.lineAt(doc.lineCount - 1).text.length);
                     edit.replace(selection, formatting.process(doc.getText(), options));
