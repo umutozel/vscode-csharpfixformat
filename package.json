@@ -3,7 +3,7 @@
     "displayName": "C# FixFormat",
     "description": "Fix format of usings / indents / empty lines",
     "icon": "icon.svg",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "publisher": "Leopotam",
     "engines": {
         "vscode": "^1.8.0"
@@ -47,6 +47,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Indent all lines with respect of parentheses / braces."
+                },
+                "csharpfixformat.indentPreprocessor": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Indent preprocessor defines or put them without indentation."
                 },
                 "csharpfixformat.emptyLinesInRowLimit": {
                     "type": "number",
