@@ -59,9 +59,7 @@ export function process(content: string, options: IFormatConfig): string {
                 mlCommentOpened = true;
                 noStringsLine = noStringsLine.substr(0, mlCommentStart);
             } else {
-                if (slCommentStart != 0) {
-                    noStringsLine = noStringsLine.substr(0, slCommentStart);
-                }
+                noStringsLine = noStringsLine.substr(0, slCommentStart);
             }
         }
         // sort usings.
