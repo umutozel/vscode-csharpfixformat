@@ -79,16 +79,32 @@ export function process(content: string, options: IFormatConfig): string {
             continue;
         }
         if (usings.length > 0) {
-            usings.sort((a, b) => {
+            usings.sort((a: string, b: string) => {
+                let res = 0;
                 if (options.sortUsingsSystemFirst) {
-                    let res = 0;
                     if (a.indexOf("System") == 6) { res--; }
                     if (b.indexOf("System") == 6) { res++; }
                     if (res !== 0) {
                         return res;
                     }
                 }
-                return a < b ? -1 : (a > b ? 1 : 0);
+                for (var i = 0; i < a.length; i++) {
+                    const lhs = a[i].toLowerCase();
+                    let rhs = b[i] ? b[i].toLowerCase() : b;
+                    if (lhs !== rhs) {
+                        res = a[i] < b[i] ? -1 : 1;
+                        break;
+                    }
+                    res += lhs !== a[i] ? 1 : 0;
+                    res -= rhs !== b[i] ? 1 : 0;
+                    if (res !== 0) {
+                        break;
+                    }
+                }
+                if (res === 0 && b.length > a.length) {
+                    return -1;
+                }
+                return res;
             });
             for (let i = 0; i < usings.length; i++) {
                 output.push(`${indent}${usings[i]};`);

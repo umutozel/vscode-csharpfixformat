@@ -1,4 +1,5 @@
 * v0.0.6
+  * Correct sorting of using lines with chars in different cases (like "S" and "s").
   * "csharpfixformat.indentPreprocessor" option was added.
     > Indent preprocessor defines or put them without indentation. Disable by default.
 * v0.0.5
