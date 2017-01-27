@@ -5,6 +5,7 @@ export interface IFormatConfig {
     sortUsingsSystemFirst: boolean;
     emptyLinesInRowLimit: number;
     indentEnabled: boolean;
+    indentPreprocessor: boolean;
 }
 
 const getIndent = (amount: number, tabSize: number): string => {
@@ -110,7 +111,17 @@ export function process(content: string, options: IFormatConfig): string {
             if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
                 output.push(`${getIndent(indentLevel - 1, options.tabSize)}${trimmedLine}`);
             } else {
-                output.push(`${indent}${trimmedLine}`);
+                if (!options.indentPreprocessor && noStringsLine[0] === '#') {
+                    if (noStringsLine.indexOf('#region') !== 0 &&
+                        noStringsLine.indexOf('#endregion') !== 0) {
+                        // preprocessor without indentation.
+                        output.push(trimmedLine);
+                    } else {
+                        output.push(`${indent}${trimmedLine}`);
+                    }
+                } else {
+                    output.push(`${indent}${trimmedLine}`);
+                }
             }
         } else {
             output.push(rawLine);

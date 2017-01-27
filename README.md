@@ -12,4 +12,5 @@ Can be processed through commands menu or context menu in text editor with optio
 
 * `csharpfixformat.sortUsingsSystemFirst`: Put System.xxx namespaces first at usings list.
 * `csharpfixformat.indentEnabled`: Indent all lines with respect of parentheses / braces.
+* `csharpfixformat.indentPreprocessor`: Indent preprocessor defines or put them without indentation.
 * `csharpfixformat.emptyLinesInRowLimit`: Amount of empty lines in row.

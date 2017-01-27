@@ -1,3 +1,6 @@
+* v0.0.6
+  * "csharpfixformat.indentPreprocessor" option was added.
+    > Indent preprocessor defines or put them without indentation. Disable by default.
 * v0.0.5
   * Switch-case indentation fixed.
 * v0.0.4
