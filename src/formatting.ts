@@ -16,6 +16,9 @@ export function process(content: string, options: IFormatConfig): string {
     const usingRegex = /^using \w+[\.\w]*;/;
     const StringRegex = /"[^\\"]*(?:\\.[^\\"]*)*"/g;
     const CharRegex = /'[^\\']*(?:\\.[^\\']*)*'/g;
+    const SwitchCaseRegex = /(case\s[^:]+|default[\s]*):/;
+    const SwitchBreakRegex = /break[\s]*;/;
+
     const usings = [];
     const output = [];
     let indentLevel = 0;
@@ -25,6 +28,7 @@ export function process(content: string, options: IFormatConfig): string {
     let emptyLinesCount = 0;
     let assignLevel = 0;
     let mlCommentOpened = false;
+    let switchLevel = 0;
 
     for (let lineId = 0; lineId < input.length; lineId++) {
         const rawLine = input[lineId];
@@ -113,6 +117,22 @@ export function process(content: string, options: IFormatConfig): string {
         }
 
         nextIndentLevel = indentLevel;
+
+        if (SwitchCaseRegex.test(noStringsLine)) {
+            // hack: check next case line for fall through behaviour.
+            if (lineId < (input.length - 1)) {
+                const nextNoStringsLine = input[lineId + 1].trim().replace(StringRegex, '""').replace(CharRegex, "''");
+                if (!SwitchCaseRegex.test(nextNoStringsLine)) {
+                    switchLevel++;
+                    nextIndentLevel++;
+                }
+            }
+        }
+        if (switchLevel > 0 && SwitchBreakRegex.test(noStringsLine)) {
+            switchLevel--;
+            nextIndentLevel--;
+        }
+
         for (var c = 0; c < noStringsLine.length; c++) {
             switch (noStringsLine[c]) {
                 case '{':
