@@ -1,3 +1,5 @@
+* v0.0.7
+  * Indentation fix for content after single line comments with "{", "(", etc.
 * v0.0.6
   * Correct sorting of using lines with chars in different cases (like "S" and "s").
   * "csharpfixformat.indentPreprocessor" option was added.
