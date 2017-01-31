@@ -1,7 +1,7 @@
 'use strict';
 
 export interface IFormatConfig {
-    tabSize: number,
+    tabSize: number;
     sortUsingsSystemFirst: boolean;
     emptyLinesInRowLimit: number;
     indentEnabled: boolean;
@@ -10,7 +10,7 @@ export interface IFormatConfig {
 
 const getIndent = (amount: number, tabSize: number): string => {
     return ' '.repeat(tabSize * amount);
-}
+};
 
 export function process(content: string, options: IFormatConfig): string {
     const input = content.split('\n');
@@ -18,7 +18,7 @@ export function process(content: string, options: IFormatConfig): string {
     const StringRegex = /"[^\\"]*(?:\\.[^\\"]*)*"/g;
     const CharRegex = /'[^\\']*(?:\\.[^\\']*)*'/g;
     const SwitchCaseRegex = /(case\s[^:]+|default[\s]*):/;
-    const SwitchBreakRegex = /break[\s]*;/;
+    const SwitchBreakRegex = /break|return[^;]*;/;
 
     const usings = [];
     const output = [];
@@ -34,7 +34,7 @@ export function process(content: string, options: IFormatConfig): string {
     for (let lineId = 0; lineId < input.length; lineId++) {
         const rawLine = input[lineId];
         const trimmedLine = rawLine.trim();
-        let noStringsLine = trimmedLine.replace(StringRegex, '""').replace(CharRegex, "''");
+        let noStringsLine = trimmedLine.replace(StringRegex, '""').replace(CharRegex, '\'\'');
         // comments processing.
         let mlCommentStart = noStringsLine.indexOf('/*');
         const mlCommentEnd = noStringsLine.indexOf('*/');
@@ -80,21 +80,21 @@ export function process(content: string, options: IFormatConfig): string {
             usings.sort((a: string, b: string) => {
                 let res = 0;
                 if (options.sortUsingsSystemFirst) {
-                    if (a.indexOf("System") == 6) { res--; }
-                    if (b.indexOf("System") == 6) { res++; }
+                    if (a.indexOf('System') === 6) { res--; }
+                    if (b.indexOf('System') === 6) { res++; }
                     if (res !== 0) {
                         return res;
                     }
                 }
-                for (var i = 0; i < a.length; i++) {
+                for (let i = 0; i < a.length; i++) {
                     const lhs = a[i].toLowerCase();
                     let rhs = b[i] ? b[i].toLowerCase() : b;
                     if (lhs !== rhs) {
                         res = a[i] < b[i] ? -1 : 1;
                         break;
                     }
-                    res += lhs !== a[i] ? 1 : 0;
-                    res -= rhs !== b[i] ? 1 : 0;
+                    if (lhs !== a[i]) { res++; }
+                    if (rhs !== b[i]) { res--; }
                     if (res !== 0) {
                         break;
                     }
@@ -146,7 +146,7 @@ export function process(content: string, options: IFormatConfig): string {
         if (SwitchCaseRegex.test(noStringsLine)) {
             // hack: check next case line for fall through behaviour.
             if (lineId < (input.length - 1)) {
-                const nextNoStringsLine = input[lineId + 1].trim().replace(StringRegex, '""').replace(CharRegex, "''");
+                const nextNoStringsLine = input[lineId + 1].trim().replace(StringRegex, '""').replace(CharRegex, '\'\'');
                 if (!SwitchCaseRegex.test(nextNoStringsLine)) {
                     switchLevel++;
                     nextIndentLevel++;
@@ -158,14 +158,14 @@ export function process(content: string, options: IFormatConfig): string {
             nextIndentLevel--;
         }
 
-        for (var c = 0; c < noStringsLine.length; c++) {
+        for (let c = 0; c < noStringsLine.length; c++) {
             switch (noStringsLine[c]) {
                 case '{':
                 case '(':
                     nextIndentLevel++;
                     break;
                 case '=':
-                    if (c == noStringsLine.length - 1) {
+                    if (c === noStringsLine.length - 1) {
                         assignLevel++;
                         nextIndentLevel++;
                     }
