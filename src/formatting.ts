@@ -72,7 +72,9 @@ export function process(content: string, options: IFormatConfig): string {
                 }
             }
             usingExpr = usingExpr.substr(0, usingExpr.length - 1);
-            usings.push(usingExpr);
+            if (usings.indexOf(usingExpr) === -1) {
+                usings.push(usingExpr);
+            }
             emptyLinesCount = 0;
             continue;
         }
@@ -88,9 +90,9 @@ export function process(content: string, options: IFormatConfig): string {
                 }
                 for (let i = 0; i < a.length; i++) {
                     const lhs = a[i].toLowerCase();
-                    let rhs = b[i] ? b[i].toLowerCase() : b;
+                    const rhs = b[i] ? b[i].toLowerCase() : b[i];
                     if (lhs !== rhs) {
-                        res = a[i] < b[i] ? -1 : 1;
+                        res = lhs < rhs ? -1 : 1;
                         break;
                     }
                     if (lhs !== a[i]) { res++; }
