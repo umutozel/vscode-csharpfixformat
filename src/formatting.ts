@@ -9,7 +9,7 @@ export interface IFormatConfig {
 }
 
 const getIndent = (amount: number, tabSize: number): string => {
-    return ' '.repeat(tabSize * amount);
+    return ' '.repeat(tabSize * (amount > 0 ? amount : 0));
 };
 
 export function process(content: string, options: IFormatConfig): string {
@@ -19,7 +19,6 @@ export function process(content: string, options: IFormatConfig): string {
     const CharRegex = /'[^\\']*(?:\\.[^\\']*)*'/g;
     const SwitchCaseRegex = /(case\s[^:]+|default[\s]*):/;
     const SwitchBreakRegex = /break|return[^;]*;/;
-
     const usings = [];
     const output = [];
     let indentLevel = 0;
@@ -160,30 +159,34 @@ export function process(content: string, options: IFormatConfig): string {
             nextIndentLevel--;
         }
 
+        let indented = 0;
+        let unindented = 0;
         for (let c = 0; c < noStringsLine.length; c++) {
             switch (noStringsLine[c]) {
                 case '{':
                 case '(':
-                    nextIndentLevel++;
+                    indented++;
                     break;
                 case '=':
                     if (c === noStringsLine.length - 1) {
                         assignLevel++;
-                        nextIndentLevel++;
+                        indented++;
                     }
                     break;
                 case '}':
                 case ')':
-                    nextIndentLevel--;
+                    unindented++;
                     break;
                 case ';':
                     if (assignLevel > 0) {
                         assignLevel--;
-                        nextIndentLevel--;
+                        unindented++;
                     }
                     break;
             }
-        };
+        }
+        nextIndentLevel += Math.sign(indented - unindented);
+
         if (nextIndentLevel !== indentLevel) {
             indentLevel = nextIndentLevel < 0 ? 0 : nextIndentLevel;
             indent = getIndent(indentLevel, options.tabSize);
