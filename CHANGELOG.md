@@ -1,3 +1,9 @@
+* v0.0.8
+  * Sort usings logic fixes, doubles in usings will be removed automatically.
+  * Warning notification was added.
+  * Indentation fixes for multiline assign expressions.
+  * Performance fix for indentEnabled = false.
+  * tslint fixes.
 * v0.0.7
   * Indentation fix for content after single line comments with "{", "(", etc.
 * v0.0.6
