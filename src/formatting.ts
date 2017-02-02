@@ -1,5 +1,3 @@
-'use strict';
-
 export interface IFormatConfig {
     tabSize: number;
     sortUsingsSystemFirst: boolean;
@@ -8,11 +6,46 @@ export interface IFormatConfig {
     indentPreprocessor: boolean;
 }
 
+export interface IResult {
+    source?: string;
+    error?: string;
+}
+
+interface IIndenter {
+    line: number;
+    indentLevel: number;
+    open: string;
+}
+
+const indentClosePairs = {
+    '{': '}',
+    '(': ')',
+    '[': ']',
+    '=': ';',
+};
+
+const assignInvalidChars = '<>=!';
+
 const getIndent = (amount: number, tabSize: number): string => {
     return ' '.repeat(tabSize * (amount > 0 ? amount : 0));
 };
 
-export function process(content: string, options: IFormatConfig): string {
+const _indenters: IIndenter[] = [];
+
+const clearIndenters = (): void => {
+    _indenters.length = 0;
+};
+
+const pushIndenter = (indenter: IIndenter): void => {
+    _indenters.push(indenter);
+};
+
+const popIndenter = (): IIndenter | undefined => {
+    return _indenters.length > 0 ? _indenters.pop() : undefined;
+};
+
+export const process = (content: string, options: IFormatConfig): IResult => {
+    clearIndenters();
     const input = content.split('\n');
     const usingRegex = /^using \w+[\.\w]*;/;
     const StringRegex = /"[^\\"]*(?:\\.[^\\"]*)*"/g;
@@ -110,6 +143,7 @@ export function process(content: string, options: IFormatConfig): string {
             }
             usings.length = 0;
         }
+
         // emptyLinesInRowLimit option processing.
         if (trimmedLine.length === 0) {
             if (options.emptyLinesInRowLimit >= 0) {
@@ -121,25 +155,28 @@ export function process(content: string, options: IFormatConfig): string {
         } else {
             emptyLinesCount = 0;
         }
+
         // indentEnabled option processing.
-        if (options.indentEnabled) {
-            if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
-                output.push(`${getIndent(indentLevel - 1, options.tabSize)}${trimmedLine}`);
-            } else {
-                if (!options.indentPreprocessor && noStringsLine[0] === '#') {
-                    if (noStringsLine.indexOf('#region') !== 0 &&
-                        noStringsLine.indexOf('#endregion') !== 0) {
-                        // preprocessor without indentation.
-                        output.push(trimmedLine);
-                    } else {
-                        output.push(`${indent}${trimmedLine}`);
-                    }
+        if (!options.indentEnabled) {
+            output.push(rawLine);
+            continue;
+        }
+        if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
+            indentLevel = Math.max(0, indentLevel - 1);
+            indent = getIndent(indentLevel, options.tabSize);
+            output.push(`${indent}${trimmedLine}`);
+        } else {
+            if (!options.indentPreprocessor && noStringsLine[0] === '#') {
+                if (noStringsLine.indexOf('#region') !== 0 &&
+                    noStringsLine.indexOf('#endregion') !== 0) {
+                    // preprocessor without indentation.
+                    output.push(trimmedLine);
                 } else {
                     output.push(`${indent}${trimmedLine}`);
                 }
+            } else {
+                output.push(`${indent}${trimmedLine}`);
             }
-        } else {
-            output.push(rawLine);
         }
 
         nextIndentLevel = indentLevel;
@@ -160,37 +197,62 @@ export function process(content: string, options: IFormatConfig): string {
         }
 
         let indented = 0;
-        let unindented = 0;
+        let oldIndent: IIndenter;
         for (let c = 0; c < noStringsLine.length; c++) {
-            switch (noStringsLine[c]) {
+            const ch = noStringsLine[c];
+            switch (ch) {
                 case '{':
                 case '(':
+                case '[':
                     indented++;
+                    pushIndenter({ open: ch, indentLevel: indentLevel, line: lineId });
                     break;
                 case '=':
-                    if (c === noStringsLine.length - 1) {
-                        assignLevel++;
+                    if (assignInvalidChars.indexOf(noStringsLine[c + 1]) === -1 && assignInvalidChars.indexOf(noStringsLine[c - 1]) === -1) {
+                        // skip fat arrows, equals, not equals, etc
                         indented++;
+                        pushIndenter({ open: ch, indentLevel: indentLevel, line: lineId });
                     }
                     break;
                 case '}':
                 case ')':
-                    unindented++;
+                case ']':
+                    indented = Math.max(0, indented - 1);
+                    oldIndent = popIndenter();
+                    while (oldIndent && oldIndent.open === '=') {
+                        oldIndent = popIndenter();
+                        indented = 0;
+                    }
+                    if (!oldIndent || ch !== indentClosePairs[oldIndent.open]) {
+                        return { error: `invalid braces balance at line ${lineId + 1}` };
+                    }
+                    if (lineId !== oldIndent.line && c > 0) {
+                        // skip first char at line - already indented.
+                        nextIndentLevel = oldIndent.indentLevel;
+                        indented = 0;
+                    }
                     break;
                 case ';':
-                    if (assignLevel > 0) {
-                        assignLevel--;
-                        unindented++;
+                    oldIndent = popIndenter();
+                    if (oldIndent) {
+                        if (indentClosePairs[oldIndent.open] === ch) {
+                            indented--;
+                            nextIndentLevel = oldIndent.indentLevel;
+                        } else {
+                            pushIndenter(oldIndent);
+                        }
                     }
                     break;
             }
         }
-        nextIndentLevel += Math.sign(indented - unindented);
+        if (indented > 0) {
+            nextIndentLevel++; // = Math.sign(indented);
+        }
 
         if (nextIndentLevel !== indentLevel) {
             indentLevel = nextIndentLevel < 0 ? 0 : nextIndentLevel;
             indent = getIndent(indentLevel, options.tabSize);
         }
     }
-    return output.join('\n');
-}
+    return { source: output.join('\n') };
+};
