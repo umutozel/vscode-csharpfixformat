@@ -1,25 +1,57 @@
-'use strict';
-
 export interface IFormatConfig {
-    tabSize: number,
+    tabSize: number;
     sortUsingsSystemFirst: boolean;
     emptyLinesInRowLimit: number;
     indentEnabled: boolean;
     indentPreprocessor: boolean;
 }
 
-const getIndent = (amount: number, tabSize: number): string => {
-    return ' '.repeat(tabSize * amount);
+export interface IResult {
+    source?: string;
+    error?: string;
 }
 
-export function process(content: string, options: IFormatConfig): string {
+interface IIndenter {
+    line: number;
+    indentLevel: number;
+    open: string;
+}
+
+const indentClosePairs = {
+    '{': '}',
+    '(': ')',
+    '[': ']',
+    '=': ';',
+};
+
+const assignInvalidChars = '<>=!';
+
+const getIndent = (amount: number, tabSize: number): string => {
+    return ' '.repeat(tabSize * (amount > 0 ? amount : 0));
+};
+
+const _indenters: IIndenter[] = [];
+
+const clearIndenters = (): void => {
+    _indenters.length = 0;
+};
+
+const pushIndenter = (indenter: IIndenter): void => {
+    _indenters.push(indenter);
+};
+
+const popIndenter = (): IIndenter | undefined => {
+    return _indenters.length > 0 ? _indenters.pop() : undefined;
+};
+
+export const process = (content: string, options: IFormatConfig): IResult => {
+    clearIndenters();
     const input = content.split('\n');
     const usingRegex = /^using \w+[\.\w]*;/;
     const StringRegex = /"[^\\"]*(?:\\.[^\\"]*)*"/g;
     const CharRegex = /'[^\\']*(?:\\.[^\\']*)*'/g;
     const SwitchCaseRegex = /(case\s[^:]+|default[\s]*):/;
-    const SwitchBreakRegex = /break[\s]*;/;
-
+    const SwitchBreakRegex = /break|return[^;]*;/;
     const usings = [];
     const output = [];
     let indentLevel = 0;
@@ -34,7 +66,7 @@ export function process(content: string, options: IFormatConfig): string {
     for (let lineId = 0; lineId < input.length; lineId++) {
         const rawLine = input[lineId];
         const trimmedLine = rawLine.trim();
-        let noStringsLine = trimmedLine.replace(StringRegex, '""').replace(CharRegex, "''");
+        let noStringsLine = trimmedLine.replace(StringRegex, '""').replace(CharRegex, '\'\'');
         // comments processing.
         let mlCommentStart = noStringsLine.indexOf('/*');
         const mlCommentEnd = noStringsLine.indexOf('*/');
@@ -72,7 +104,9 @@ export function process(content: string, options: IFormatConfig): string {
                 }
             }
             usingExpr = usingExpr.substr(0, usingExpr.length - 1);
-            usings.push(usingExpr);
+            if (usings.indexOf(usingExpr) === -1) {
+                usings.push(usingExpr);
+            }
             emptyLinesCount = 0;
             continue;
         }
@@ -80,21 +114,21 @@ export function process(content: string, options: IFormatConfig): string {
             usings.sort((a: string, b: string) => {
                 let res = 0;
                 if (options.sortUsingsSystemFirst) {
-                    if (a.indexOf("System") == 6) { res--; }
-                    if (b.indexOf("System") == 6) { res++; }
+                    if (a.indexOf('System') === 6) { res--; }
+                    if (b.indexOf('System') === 6) { res++; }
                     if (res !== 0) {
                         return res;
                     }
                 }
-                for (var i = 0; i < a.length; i++) {
+                for (let i = 0; i < a.length; i++) {
                     const lhs = a[i].toLowerCase();
-                    let rhs = b[i] ? b[i].toLowerCase() : b;
+                    const rhs = b[i] ? b[i].toLowerCase() : b[i];
                     if (lhs !== rhs) {
-                        res = a[i] < b[i] ? -1 : 1;
+                        res = lhs < rhs ? -1 : 1;
                         break;
                     }
-                    res += lhs !== a[i] ? 1 : 0;
-                    res -= rhs !== b[i] ? 1 : 0;
+                    if (lhs !== a[i]) { res++; }
+                    if (rhs !== b[i]) { res--; }
                     if (res !== 0) {
                         break;
                     }
@@ -109,6 +143,7 @@ export function process(content: string, options: IFormatConfig): string {
             }
             usings.length = 0;
         }
+
         // emptyLinesInRowLimit option processing.
         if (trimmedLine.length === 0) {
             if (options.emptyLinesInRowLimit >= 0) {
@@ -120,25 +155,28 @@ export function process(content: string, options: IFormatConfig): string {
         } else {
             emptyLinesCount = 0;
         }
+
         // indentEnabled option processing.
-        if (options.indentEnabled) {
-            if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
-                output.push(`${getIndent(indentLevel - 1, options.tabSize)}${trimmedLine}`);
-            } else {
-                if (!options.indentPreprocessor && noStringsLine[0] === '#') {
-                    if (noStringsLine.indexOf('#region') !== 0 &&
-                        noStringsLine.indexOf('#endregion') !== 0) {
-                        // preprocessor without indentation.
-                        output.push(trimmedLine);
-                    } else {
-                        output.push(`${indent}${trimmedLine}`);
-                    }
+        if (!options.indentEnabled) {
+            output.push(rawLine);
+            continue;
+        }
+        if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
+            indentLevel = Math.max(0, indentLevel - 1);
+            indent = getIndent(indentLevel, options.tabSize);
+            output.push(`${indent}${trimmedLine}`);
+        } else {
+            if (!options.indentPreprocessor && noStringsLine[0] === '#') {
+                if (noStringsLine.indexOf('#region') !== 0 &&
+                    noStringsLine.indexOf('#endregion') !== 0) {
+                    // preprocessor without indentation.
+                    output.push(trimmedLine);
                 } else {
                     output.push(`${indent}${trimmedLine}`);
                 }
+            } else {
+                output.push(`${indent}${trimmedLine}`);
             }
-        } else {
-            output.push(rawLine);
         }
 
         nextIndentLevel = indentLevel;
@@ -146,7 +184,7 @@ export function process(content: string, options: IFormatConfig): string {
         if (SwitchCaseRegex.test(noStringsLine)) {
             // hack: check next case line for fall through behaviour.
             if (lineId < (input.length - 1)) {
-                const nextNoStringsLine = input[lineId + 1].trim().replace(StringRegex, '""').replace(CharRegex, "''");
+                const nextNoStringsLine = input[lineId + 1].trim().replace(StringRegex, '""').replace(CharRegex, '\'\'');
                 if (!SwitchCaseRegex.test(nextNoStringsLine)) {
                     switchLevel++;
                     nextIndentLevel++;
@@ -158,34 +196,63 @@ export function process(content: string, options: IFormatConfig): string {
             nextIndentLevel--;
         }
 
-        for (var c = 0; c < noStringsLine.length; c++) {
-            switch (noStringsLine[c]) {
+        let indented = 0;
+        let oldIndent: IIndenter;
+        for (let c = 0; c < noStringsLine.length; c++) {
+            const ch = noStringsLine[c];
+            switch (ch) {
                 case '{':
                 case '(':
-                    nextIndentLevel++;
+                case '[':
+                    indented++;
+                    pushIndenter({ open: ch, indentLevel: indentLevel, line: lineId });
                     break;
                 case '=':
-                    if (c == noStringsLine.length - 1) {
-                        assignLevel++;
-                        nextIndentLevel++;
+                    if (assignInvalidChars.indexOf(noStringsLine[c + 1]) === -1 && assignInvalidChars.indexOf(noStringsLine[c - 1]) === -1) {
+                        // skip fat arrows, equals, not equals, etc
+                        indented++;
+                        pushIndenter({ open: ch, indentLevel: indentLevel, line: lineId });
                     }
                     break;
                 case '}':
                 case ')':
-                    nextIndentLevel--;
+                case ']':
+                    indented = Math.max(0, indented - 1);
+                    oldIndent = popIndenter();
+                    while (oldIndent && oldIndent.open === '=') {
+                        oldIndent = popIndenter();
+                        indented = 0;
+                    }
+                    if (!oldIndent || ch !== indentClosePairs[oldIndent.open]) {
+                        return { error: `invalid braces balance at line ${lineId + 1}` };
+                    }
+                    if (lineId !== oldIndent.line && c > 0) {
+                        // skip first char at line - already indented.
+                        nextIndentLevel = oldIndent.indentLevel;
+                        indented = 0;
+                    }
                     break;
                 case ';':
-                    if (assignLevel > 0) {
-                        assignLevel--;
-                        nextIndentLevel--;
+                    oldIndent = popIndenter();
+                    if (oldIndent) {
+                        if (indentClosePairs[oldIndent.open] === ch) {
+                            indented--;
+                            nextIndentLevel = oldIndent.indentLevel;
+                        } else {
+                            pushIndenter(oldIndent);
+                        }
                     }
                     break;
             }
-        };
+        }
+        if (indented > 0) {
+            nextIndentLevel++; // = Math.sign(indented);
+        }
+
         if (nextIndentLevel !== indentLevel) {
             indentLevel = nextIndentLevel < 0 ? 0 : nextIndentLevel;
             indent = getIndent(indentLevel, options.tabSize);
         }
     }
-    return output.join('\n');
-}
+    return { source: output.join('\n') };
+};
