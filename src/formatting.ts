@@ -34,7 +34,9 @@ export const process = (content: string, options: IFormatConfig): IResult => {
         // restore masked preprocessor directives.
         content = content.replace(/( *)__vscode_pp__/g, options.styleIndentPreprocessorIgnored ? '#' : '$1#');
         // fix number suffixes.
-        content = content.replace(/(\d) (f|d|u|l|ul|lu|m])*/gi, '$1$2');
+        content = content.replace(/(\d) (f|d|u|l|m|ul|lu])([^\w])/gi, '$1$2$3');
+        // fix double question mark operators.
+        content = content.replace(/\? \?/gi, '??');
     }
 
     if (options.sortUsingsEnabled) {
