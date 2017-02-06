@@ -33,6 +33,8 @@ export const process = (content: string, options: IFormatConfig): IResult => {
         content = beautify(content, beautifyOptions);
         // restore masked preprocessor directives.
         content = content.replace(/( *)__vscode_pp__/g, options.styleIndentPreprocessorIgnored ? '#' : '$1#');
+        // fix number suffixes.
+        content = content.replace(/(\d) (f|d|u|l|ul|lu|m])*/gi, '$1$2');
     }
 
     if (options.sortUsingsEnabled) {
