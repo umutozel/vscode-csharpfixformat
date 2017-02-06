@@ -18,16 +18,16 @@ export function activate(context: vscode.ExtensionContext) {
                         styleNewLineMaxAmount: cfg.get<number>('style.newline.maxAmount', 0),
                         styleIndentPreprocessorIgnored: cfg.get<boolean>('style.indent.preprocessorIgnored', true)
                     };
-                    const selection = new vscode.Range(0, 0, doc.lineCount - 1, doc.lineAt(doc.lineCount - 1).text.length);
                     const result = formatting.process(doc.getText(), options);
                     if (result.error) {
                         return vscode.window.showWarningMessage(result.error);
                     }
                     if (result.source) {
-                        edit.replace(selection, result.source);
-                        // reformat code with omnisharp.
-                        vscode.commands.executeCommand('editor.action.formatDocument');
+                        edit.replace(new vscode.Range(0, 0, doc.lineCount, 0), result.source);
                     }
+                }).then(() => {
+                    // reformat code with registered code formatter.
+                    vscode.commands.executeCommand('editor.action.formatDocument');
                 });
             }
         }
