@@ -1,3 +1,20 @@
+* v0.0.9
+  * Code style code was removed, js-beautify uses instead.
+  * Sort using can be disabled.
+  * Code style formatting can be disabled.
+  * Config options were refactored.
+  * "csharpfixformat.sort.usings.enabled" option was added.
+    > Should usings be sorted or not.
+  * "csharpfixformat.sort.usings.systemFirst" option was added.
+    > Put System.xxx namespaces first at usings list on sorting.
+  * "csharpfixformat.sort.usings.splitGroups" option was added.
+    > Insert blank line between using blocks grouped by first part of namespace.
+  * "csharpfixformat.style.enabled" option was added.
+    > Enable code reformat with style options.
+  * "csharpfixformat.style.newline.maxAmount" option was added.
+    > Amount of new line (\n) symbols allowed in row. 1 means no blank lines. Use 0 for disable.
+  * "csharpfixformat.style.indent.preprocessorIgnored" option was added.
+    > Should preprocessor directives ignore indentation or use it.
 * v0.0.8
   * Sort usings logic fixes, doubles in usings will be removed automatically.
   * Warning notification was added.
