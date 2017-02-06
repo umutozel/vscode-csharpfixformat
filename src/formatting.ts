@@ -1,9 +1,13 @@
+const beautify = require('./js-beautify').js_beautify;
+
 export interface IFormatConfig {
     tabSize: number;
+    sortUsingsEnabled: boolean;
     sortUsingsSystemFirst: boolean;
-    emptyLinesInRowLimit: number;
-    indentEnabled: boolean;
-    indentPreprocessor: boolean;
+    sortUsingsSplitGroups: boolean;
+    styleEnabled: boolean;
+    styleNewLineMaxAmount: number;
+    styleIndentPreprocessorIgnored: boolean;
 }
 
 export interface IResult {
@@ -11,108 +15,36 @@ export interface IResult {
     error?: string;
 }
 
-interface IIndenter {
-    line: number;
-    indentLevel: number;
-    open: string;
-}
-
-const indentClosePairs = {
-    '{': '}',
-    '(': ')',
-    '[': ']',
-    '=': ';',
-};
-
-const assignInvalidChars = '<>=!';
-
-const getIndent = (amount: number, tabSize: number): string => {
-    return ' '.repeat(tabSize * (amount > 0 ? amount : 0));
-};
-
-const _indenters: IIndenter[] = [];
-
-const clearIndenters = (): void => {
-    _indenters.length = 0;
-};
-
-const pushIndenter = (indenter: IIndenter): void => {
-    _indenters.push(indenter);
-};
-
-const popIndenter = (): IIndenter | undefined => {
-    return _indenters.length > 0 ? _indenters.pop() : undefined;
-};
-
 export const process = (content: string, options: IFormatConfig): IResult => {
-    clearIndenters();
-    const input = content.split('\n');
-    const usingRegex = /^using \w+[\.\w]*;/;
-    const StringRegex = /"[^\\"]*(?:\\.[^\\"]*)*"/g;
-    const CharRegex = /'[^\\']*(?:\\.[^\\']*)*'/g;
-    const SwitchCaseRegex = /(case\s[^:]+|default[\s]*):/;
-    const SwitchBreakRegex = /break|return[^;]*;/;
-    const usings = [];
-    const output = [];
-    let indentLevel = 0;
-    let indent = getIndent(indentLevel, options.tabSize);
-    let nextIndentLevel: number;
-    let isIndentDirty: boolean;
-    let emptyLinesCount = 0;
-    let assignLevel = 0;
-    let mlCommentOpened = false;
-    let switchLevel = 0;
+    if (options.styleEnabled) {
+        const beautifyOptions = {
+            brace_style: 'collapse,preserve-inline',
+            indent_size: options.tabSize,
+            preserve_newlines: true,
+            max_preserve_newlines: options.styleNewLineMaxAmount > 0 ? options.styleNewLineMaxAmount : 0,
+            jslint_happy: false,
+            space_after_anon_function: true,
+            space_in_empty_paren: true,
+            keep_array_indentation: false,
+            e4x: false
+        };
+        // masking preprocessor directives for beautifier - no builtin support for them.
+        content = content.replace(/#(define|if|else|endif)(^\n)*/g, `__vscode_pp__$1$2`);
+        content = beautify(content, beautifyOptions);
+        // restore masked preprocessor directives.
+        content = content.replace(/( *)__vscode_pp__/g, options.styleIndentPreprocessorIgnored ? '#' : '$1#');
+    }
 
-    for (let lineId = 0; lineId < input.length; lineId++) {
-        const rawLine = input[lineId];
-        const trimmedLine = rawLine.trim();
-        let noStringsLine = trimmedLine.replace(StringRegex, '""').replace(CharRegex, '\'\'');
-        // comments processing.
-        let mlCommentStart = noStringsLine.indexOf('/*');
-        const mlCommentEnd = noStringsLine.indexOf('*/');
-        let slCommentStart = noStringsLine.indexOf('//');
-        if (mlCommentOpened) {
-            if (mlCommentEnd !== -1) {
-                noStringsLine = noStringsLine.substr(mlCommentEnd + 1);
-                mlCommentOpened = false;
-            } else {
-                // we are inside multiline comment.
-                noStringsLine = '';
-            }
-        }
-        if (!mlCommentOpened && (mlCommentStart !== -1 || slCommentStart !== -1)) {
-            if (mlCommentStart === -1) {
-                mlCommentStart = Number.MAX_SAFE_INTEGER;
-            }
-            if (slCommentStart === -1) {
-                slCommentStart = Number.MAX_SAFE_INTEGER;
-            }
-            if (mlCommentStart < slCommentStart) {
-                mlCommentOpened = true;
-                noStringsLine = noStringsLine.substr(0, mlCommentStart);
-            } else {
-                noStringsLine = noStringsLine.substr(0, slCommentStart);
-            }
-        }
-        // sort usings.
-        if (usingRegex.test(noStringsLine)) {
-            let usingExpr = noStringsLine.match(usingRegex)[0];
-            if (noStringsLine.length > usingExpr.length) {
-                const endLine = noStringsLine.substr(usingExpr.length).trim();
-                if (endLine.length > 0) {
-                    input.splice(lineId + 1, 0, endLine);
-                }
-            }
-            usingExpr = usingExpr.substr(0, usingExpr.length - 1);
-            if (usings.indexOf(usingExpr) === -1) {
-                usings.push(usingExpr);
-            }
-            emptyLinesCount = 0;
-            continue;
-        }
-        if (usings.length > 0) {
-            usings.sort((a: string, b: string) => {
+    if (options.sortUsingsEnabled) {
+        const usingRegex = /(\n? *using\s+[.\w]+;)+/g;
+        const trimSemiColon = /^\s+|;\s*$/;
+        content = content.replace(usingRegex, (rawBlock: string) => {
+            const items = rawBlock.split('\n').filter((l) => l && l.trim().length > 0);
+            items.sort((a: string, b: string) => {
                 let res = 0;
+                // because we keep lines with indentation and semicolons.
+                a = a.replace(trimSemiColon, '');
+                b = b.replace(trimSemiColon, '');
                 if (options.sortUsingsSystemFirst) {
                     if (a.indexOf('System') === 6) { res--; }
                     if (b.indexOf('System') === 6) { res++; }
@@ -133,126 +65,27 @@ export const process = (content: string, options: IFormatConfig): IResult => {
                         break;
                     }
                 }
-                if (res === 0 && b.length > a.length) {
-                    return -1;
-                }
-                return res;
+                return res === 0 && b.length > a.length ? -1 : res;
             });
-            for (let i = 0; i < usings.length; i++) {
-                output.push(`${indent}${usings[i]};`);
-            }
-            usings.length = 0;
-        }
-
-        // emptyLinesInRowLimit option processing.
-        if (trimmedLine.length === 0) {
-            if (options.emptyLinesInRowLimit >= 0) {
-                if (emptyLinesCount >= options.emptyLinesInRowLimit) {
-                    continue;
-                }
-                emptyLinesCount++;
-            }
-        } else {
-            emptyLinesCount = 0;
-        }
-
-        // indentEnabled option processing.
-        if (!options.indentEnabled) {
-            output.push(rawLine);
-            continue;
-        }
-        if (noStringsLine[0] === '}' || noStringsLine[0] === ')') {
-            indentLevel = Math.max(0, indentLevel - 1);
-            indent = getIndent(indentLevel, options.tabSize);
-            output.push(`${indent}${trimmedLine}`);
-        } else {
-            if (!options.indentPreprocessor && noStringsLine[0] === '#') {
-                if (noStringsLine.indexOf('#region') !== 0 &&
-                    noStringsLine.indexOf('#endregion') !== 0) {
-                    // preprocessor without indentation.
-                    output.push(trimmedLine);
-                } else {
-                    output.push(`${indent}${trimmedLine}`);
-                }
-            } else {
-                output.push(`${indent}${trimmedLine}`);
-            }
-        }
-
-        nextIndentLevel = indentLevel;
-
-        if (SwitchCaseRegex.test(noStringsLine)) {
-            // hack: check next case line for fall through behaviour.
-            if (lineId < (input.length - 1)) {
-                const nextNoStringsLine = input[lineId + 1].trim().replace(StringRegex, '""').replace(CharRegex, '\'\'');
-                if (!SwitchCaseRegex.test(nextNoStringsLine)) {
-                    switchLevel++;
-                    nextIndentLevel++;
+            if (options.sortUsingsSplitGroups) {
+                let i = items.length - 1;
+                const baseNS = /\s*using\s+(\w+).*/;
+                let lastNS = items[i--].replace(baseNS, '$1');
+                let nextNS: string;
+                for (; i >= 0; i--) {
+                    nextNS = items[i].replace(baseNS, '$1');
+                    if (nextNS !== lastNS) {
+                        lastNS = nextNS;
+                        items.splice(i + 1, 0, '');
+                    }
                 }
             }
-        }
-        if (switchLevel > 0 && SwitchBreakRegex.test(noStringsLine)) {
-            switchLevel--;
-            nextIndentLevel--;
-        }
-
-        let indented = 0;
-        let oldIndent: IIndenter;
-        for (let c = 0; c < noStringsLine.length; c++) {
-            const ch = noStringsLine[c];
-            switch (ch) {
-                case '{':
-                case '(':
-                case '[':
-                    indented++;
-                    pushIndenter({ open: ch, indentLevel: indentLevel, line: lineId });
-                    break;
-                case '=':
-                    if (assignInvalidChars.indexOf(noStringsLine[c + 1]) === -1 && assignInvalidChars.indexOf(noStringsLine[c - 1]) === -1) {
-                        // skip fat arrows, equals, not equals, etc
-                        indented++;
-                        pushIndenter({ open: ch, indentLevel: indentLevel, line: lineId });
-                    }
-                    break;
-                case '}':
-                case ')':
-                case ']':
-                    indented = Math.max(0, indented - 1);
-                    oldIndent = popIndenter();
-                    while (oldIndent && oldIndent.open === '=') {
-                        oldIndent = popIndenter();
-                        indented = 0;
-                    }
-                    if (!oldIndent || ch !== indentClosePairs[oldIndent.open]) {
-                        return { error: `invalid braces balance at line ${lineId + 1}` };
-                    }
-                    if (lineId !== oldIndent.line && c > 0) {
-                        // skip first char at line - already indented.
-                        nextIndentLevel = oldIndent.indentLevel;
-                        indented = 0;
-                    }
-                    break;
-                case ';':
-                    oldIndent = popIndenter();
-                    if (oldIndent) {
-                        if (indentClosePairs[oldIndent.open] === ch) {
-                            indented--;
-                            nextIndentLevel = oldIndent.indentLevel;
-                        } else {
-                            pushIndenter(oldIndent);
-                        }
-                    }
-                    break;
+            if (rawBlock[0] === '\n') {
+                items.unshift('');
             }
-        }
-        if (indented > 0) {
-            nextIndentLevel++; // = Math.sign(indented);
-        }
-
-        if (nextIndentLevel !== indentLevel) {
-            indentLevel = nextIndentLevel < 0 ? 0 : nextIndentLevel;
-            indent = getIndent(indentLevel, options.tabSize);
-        }
+            return items.join('\n');
+        });
     }
-    return { source: output.join('\n') };
+
+    return { source: content };
 };

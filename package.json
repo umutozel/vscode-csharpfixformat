@@ -1,90 +1,101 @@
 {
-    "name": "csharpfixformat",
-    "displayName": "C# FixFormat",
-    "description": "Fix format of usings / indents / empty lines",
-    "icon": "icon.svg",
-    "version": "0.0.8",
-    "publisher": "Leopotam",
-    "engines": {
-        "vscode": "^1.8.0"
-    },
-    "categories": [
-        "Formatters"
+  "name": "csharpfixformat",
+  "displayName": "C# FixFormat",
+  "description": "Fix format of usings / indents / empty lines",
+  "icon": "icon.svg",
+  "version": "0.0.9",
+  "publisher": "Leopotam",
+  "engines": {
+    "vscode": "^1.9.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onCommand:csharpfixformat.process"
+  ],
+  "author": {
+    "name": "Leopotam",
+    "email": "leopotam@gmail.com"
+  },
+  "main": "./out/src/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "csharpfixformat.process",
+        "title": "CSharp: Fix format"
+      }
     ],
-    "activationEvents": [
-        "onCommand:csharpfixformat.process"
-    ],
-    "author": {
-        "name": "Leopotam",
-        "email": "leopotam@gmail.com"
-    },
-    "main": "./out/src/extension",
-    "contributes": {
-        "commands": [
-            {
-                "command": "csharpfixformat.process",
-                "title": "CSharp: Fix format"
-            }
-        ],
-        "menus": {
-            "editor/context": [
-                {
-                    "when": "resourceLangId == csharp",
-                    "command": "csharpfixformat.process",
-                    "group": "modification"
-                }
-            ]
-        },
-        "configuration": {
-            "title": "C# FixFormat configuration",
-            "properties": {
-                "csharpfixformat.sortUsingsSystemFirst": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Put System.xxx namespaces first at usings list."
-                },
-                "csharpfixformat.indentEnabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Indent all lines with respect of parentheses / braces."
-                },
-                "csharpfixformat.indentPreprocessor": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Indent preprocessor defines or put them without indentation."
-                },
-                "csharpfixformat.emptyLinesInRowLimit": {
-                    "type": "number",
-                    "default": 1,
-                    "description": "Amount of empty lines in row. Negative for disable."
-                }
-            }
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceLangId == csharp",
+          "command": "csharpfixformat.process",
+          "group": "modification"
         }
+      ]
     },
-    "keywords": [
-        "C#",
-        "csharp",
-        "sort",
-        "using",
-        "format"
-    ],
-    "scripts": {
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -w -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install"
-    },
-    "devDependencies": {
-        "typescript": "^2.1.0",
-        "vscode": "^1.0.0",
-        "@types/node": "^7.0.0"
-    },
-    "license": "MIT",
-    "homepage": "https://github.com/Leopotam/vscode-csharpfixformat",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Leopotam/vscode-csharpfixformat"
-    },
-    "bugs": {
-        "url": "https://github.com/Leopotam/vscode-csharpfixformat/issues"
+    "configuration": {
+      "title": "C# FixFormat configuration",
+      "properties": {
+        "csharpfixformat.sort.usings.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should usings be sorted or not."
+        },
+        "csharpfixformat.sort.usings.systemFirst": {
+          "type": "boolean",
+          "default": true,
+          "description": "Put System.xxx namespaces first at usings list on sorting."
+        },
+        "csharpfixformat.sort.usings.splitGroups": {
+          "type": "boolean",
+          "default": false,
+          "description": "Insert blank line between using blocks grouped by first part of namespace."
+        },
+        "csharpfixformat.style.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code reformat with style options."
+        },
+        "csharpfixformat.style.newline.maxAmount": {
+          "type": "number",
+          "default": 2,
+          "description": "Amount of new line (\\n) symbols allowed in row. 1 means no blank lines. Use 0 for disable."
+        },
+        "csharpfixformat.style.indent.preprocessorIgnored": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should preprocessor directives ignore indentation or use it."
+        }
+      }
     }
+  },
+  "keywords": [
+    "C#",
+    "csharp",
+    "sort",
+    "using",
+    "format"
+  ],
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -w -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "typescript": "^2.1.0",
+    "vscode": "^1.0.0",
+    "@types/node": "^7.0.0"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Leopotam/vscode-csharpfixformat",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Leopotam/vscode-csharpfixformat"
+  },
+  "bugs": {
+    "url": "https://github.com/Leopotam/vscode-csharpfixformat/issues"
+  },
+  "dependencies": {}
 }

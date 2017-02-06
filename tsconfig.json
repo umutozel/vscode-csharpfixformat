@@ -7,9 +7,13 @@
             "es6"
         ],
         "sourceMap": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "removeComments": true,
+        "strictNullChecks": true,
+        "allowJs": true
     },
     "include": [
-        "src"
+        "src/**/*.ts",
+        "src/**/*.js"
     ]
 }
