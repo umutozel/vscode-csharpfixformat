@@ -60,8 +60,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             const prefix = s.substr(0, braceIdx);
             s = s.substr(braceIdx);
             const itemIndent = / +/.exec(s) ![0];
-            s = prefix + s.replace(/( +)(\w.*\n)/g, `${itemIndent}$2`);
-            return s;
+            return prefix + s.replace(/( +)(\w.*\n)/g, `${itemIndent}$2`);
         });
         if (options.styleSpacesBeforeParenthesis) {
             // fix opening parenthesis.
