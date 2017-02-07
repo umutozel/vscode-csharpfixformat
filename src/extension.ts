@@ -7,8 +7,8 @@ export function activate(context: vscode.ExtensionContext) {
         if (editor) {
             const doc = editor.document;
             if (doc.languageId === 'csharp') {
+                const cfg = vscode.workspace.getConfiguration('csharpfixformat');
                 return editor.edit(edit => {
-                    const cfg = vscode.workspace.getConfiguration('csharpfixformat');
                     const options: formatting.IFormatConfig = {
                         tabSize: vscode.workspace.getConfiguration().get<number>('editor.tabSize', 4),
                         sortUsingsEnabled: cfg.get<boolean>('sort.usings.enabled', true),
@@ -16,7 +16,14 @@ export function activate(context: vscode.ExtensionContext) {
                         sortUsingsSplitGroups: cfg.get<boolean>('sort.usings.splitGroups', false),
                         styleEnabled: cfg.get<boolean>('style.enabled', true),
                         styleNewLineMaxAmount: cfg.get<number>('style.newline.maxAmount', 0),
-                        styleIndentPreprocessorIgnored: cfg.get<boolean>('style.indent.preprocessorIgnored', true)
+                        styleIndentPreprocessorIgnored: cfg.get<boolean>('style.indent.preprocessorIgnored', true),
+                        styleBracesOnSameLine: cfg.get<boolean>('style.braces.onSameLine', true),
+                        styleBracesAllowInlines: cfg.get<boolean>('style.braces.allowInlines', true),
+                        styleSpacesBeforeParenthesis: cfg.get<boolean>('style.spaces.beforeParenthesis', true),
+                        styleSpacesBeforeBracket: cfg.get<boolean>('style.spaces.beforeBracket', true),
+                        styleSpacesInsideEmptyParenthis: cfg.get<boolean>('style.spaces.insideEmptyParenthis', false),
+                        styleSpacesInsideEmptyBraces: cfg.get<boolean>('style.spaces.insideEmptyBraces', true),
+                        styleSpacesInsideEmptyBrackets: cfg.get<boolean>('style.spaces.insideEmptyBrackets', false)
                     };
                     const result = formatting.process(doc.getText(), options);
                     if (result.error) {
@@ -25,9 +32,16 @@ export function activate(context: vscode.ExtensionContext) {
                     if (result.source) {
                         edit.replace(new vscode.Range(0, 0, doc.lineCount, 0), result.source);
                     }
-                }).then(() => {
-                    // reformat code with registered code formatter.
-                    vscode.commands.executeCommand('editor.action.formatDocument');
+                }).then((success) => {
+                    if (success && cfg.get<boolean>('style.activateDefaultFormatterAfter', false)) {
+                        // reformat code with registered code formatter.
+                        vscode.commands.executeCommand('vscode.executeFormatDocumentProvider', doc.uri)
+                            .then((editList: vscode.TextEdit[]) => {
+                                const defaultFormatting = new vscode.WorkspaceEdit();
+                                defaultFormatting.set(doc.uri, editList);
+                                vscode.workspace.applyEdit(defaultFormatting);
+                            });
+                    }
                 });
             }
         }

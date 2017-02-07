@@ -8,6 +8,13 @@ export interface IFormatConfig {
     styleEnabled: boolean;
     styleNewLineMaxAmount: number;
     styleIndentPreprocessorIgnored: boolean;
+    styleBracesOnSameLine: boolean;
+    styleBracesAllowInlines: boolean;
+    styleSpacesBeforeParenthesis: boolean;
+    styleSpacesBeforeBracket: boolean;
+    styleSpacesInsideEmptyParenthis: boolean;
+    styleSpacesInsideEmptyBraces: boolean;
+    styleSpacesInsideEmptyBrackets: boolean;
 }
 
 export interface IResult {
@@ -17,8 +24,12 @@ export interface IResult {
 
 export const process = (content: string, options: IFormatConfig): IResult => {
     if (options.styleEnabled) {
+        let bracesStyle = options.styleBracesOnSameLine ? 'collapse' : 'expand';
+        if (options.styleBracesAllowInlines) {
+            bracesStyle += ',preserve-inline';
+        }
         const beautifyOptions = {
-            brace_style: 'collapse,preserve-inline',
+            brace_style: bracesStyle,
             indent_size: options.tabSize,
             preserve_newlines: true,
             max_preserve_newlines: options.styleNewLineMaxAmount > 0 ? options.styleNewLineMaxAmount : 0,
@@ -36,7 +47,31 @@ export const process = (content: string, options: IFormatConfig): IResult => {
         // fix number suffixes.
         content = content.replace(/(\d) (f|d|u|l|m|ul|lu])([^\w])/gi, '$1$2$3');
         // fix double question mark operators.
-        content = content.replace(/\? \?/gi, '??');
+        content = content.replace(/\? \?/g, '??');
+        // fix colons.
+        content = content.replace(/(\w): (\w|\d)/g, '$1 : $2');
+        // fix generics.
+        content = content.replace(/\w\s*< ([^>]+)>/g, s => {
+            return s.replace(/\s*<\s*/g, '<').replace(/\s*>\s*/g, '>');
+        });
+
+        if (options.styleSpacesBeforeParenthesis) {
+            // fix opening parenthesis.
+            content = content.replace(/([^ ])(\()/g, '$1 $2');
+        }
+        if (options.styleSpacesBeforeBracket) {
+            // fix opening bracket.
+            content = content.replace(/([^ ])(\[)/g, '$1 $2');
+        }
+        if (options.styleSpacesInsideEmptyParenthis) {
+            content = content.replace(/\(\)/g, '( )');
+        }
+        if (options.styleSpacesInsideEmptyBraces) {
+            content = content.replace(/\{\}/g, '{ }');
+        }
+        if (options.styleSpacesInsideEmptyBrackets) {
+            content = content.replace(/\[\]/g, '[ ]');
+        }
     }
 
     if (options.sortUsingsEnabled) {
