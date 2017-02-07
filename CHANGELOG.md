@@ -1,3 +1,27 @@
+* v0.0.10
+  * Keybinding "ctrl+alt+i" was added for formatting activation.
+  * "csharpfixformat.style.activateDefaultFormatterAfter" option was added.
+    > Should default code formatter be activated as post process.
+  * "csharpfixformat.style.braces.onSameLine" option was added.
+    > Should open braces be kept on expression line (K&R style) or on new line.
+  * "csharpfixformat.style.braces.allowInlines" option was added.
+    > Allow expressions inside braces at one line.
+  * "csharpfixformat.style.spaces.beforeParenthesis" option was added.
+    > Space before '(' - opening parenthesis.
+  * "csharpfixformat.style.spaces.afterParenthesis" option was added.
+    > Space after ')' - closing parenthesis.
+  * "csharpfixformat.style.spaces.beforeBracket" option was added.
+    > Space before '[' - opening bracket.
+  * "csharpfixformat.style.spaces.afterBracket" option was added.
+    > Space after ']' - closing bracket.
+  * "csharpfixformat.style.spaces.insideEmptyParenthis" option was added.
+    > Space inside '()' - empty parenthis.
+  * "csharpfixformat.style.spaces.insideEmptyBraces" option was added.
+    > Space inside '{}' - empty braces.
+  * "csharpfixformat.style.spaces.insideEmptyBrackets" option was added.
+    > Space inside '[]' - empty brackets.
+  * Fix colons / generics formatting.
+  * Fix usings sorting as one block after splitting.
 * v0.0.9
   * Code style code was removed, js-beautify uses instead.
   * Sort using can be disabled.

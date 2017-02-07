@@ -8,6 +8,15 @@ export interface IFormatConfig {
     styleEnabled: boolean;
     styleNewLineMaxAmount: number;
     styleIndentPreprocessorIgnored: boolean;
+    styleBracesOnSameLine: boolean;
+    styleBracesAllowInlines: boolean;
+    styleSpacesBeforeParenthesis: boolean;
+    styleSpacesAfterParenthesis: boolean;
+    styleSpacesBeforeBracket: boolean;
+    styleSpacesAfterBracket: boolean;
+    styleSpacesInsideEmptyParenthis: boolean;
+    styleSpacesInsideEmptyBraces: boolean;
+    styleSpacesInsideEmptyBrackets: boolean;
 }
 
 export interface IResult {
@@ -17,8 +26,12 @@ export interface IResult {
 
 export const process = (content: string, options: IFormatConfig): IResult => {
     if (options.styleEnabled) {
+        let bracesStyle = options.styleBracesOnSameLine ? 'collapse' : 'expand';
+        if (options.styleBracesAllowInlines) {
+            bracesStyle += ',preserve-inline';
+        }
         const beautifyOptions = {
-            brace_style: 'collapse,preserve-inline',
+            brace_style: bracesStyle,
             indent_size: options.tabSize,
             preserve_newlines: true,
             max_preserve_newlines: options.styleNewLineMaxAmount > 0 ? options.styleNewLineMaxAmount : 0,
@@ -36,11 +49,50 @@ export const process = (content: string, options: IFormatConfig): IResult => {
         // fix number suffixes.
         content = content.replace(/(\d) (f|d|u|l|m|ul|lu])([^\w])/gi, '$1$2$3');
         // fix double question mark operators.
-        content = content.replace(/\? \?/gi, '??');
+        content = content.replace(/\? \?/g, '??');
+        // fix colons.
+        content = content.replace(/(\w): (\w|\d)/g, '$1 : $2');
+        // fix generics.
+        content = content.replace(/\w\s*< ([^>\n]+)>/g, s => {
+            return s.replace(/\s*<\s*/g, '<').replace(/\s*>\s*/g, '>');
+        });
+        // fix enums.
+        content = content.replace(/enum[^\{]+\{[^\}]+\}/g, s => {
+            const braceIdx = s.indexOf('{') + 1;
+            const prefix = s.substr(0, braceIdx);
+            s = s.substr(braceIdx);
+            const itemIndent = / +/.exec(s) ![0];
+            return prefix + s.replace(/( +)(\w.*\n)/g, `${itemIndent}$2`);
+        });
+        if (options.styleSpacesBeforeParenthesis) {
+            // fix opening parenthesis.
+            content = content.replace(/(\w)(\()/g, '$1 $2');
+        }
+        if (options.styleSpacesAfterParenthesis) {
+            // fix closing parenthesis.
+            content = content.replace(/\)([\w\(\[])/g, ') $1');
+        }
+        if (options.styleSpacesBeforeBracket) {
+            // fix opening bracket.
+            content = content.replace(/(\w)(\[)/g, '$1 $2');
+        }
+        if (options.styleSpacesAfterBracket) {
+            // fix closing bracket.
+            content = content.replace(/\]([\w\(\[])/g, '] $1');;
+        }
+        if (options.styleSpacesInsideEmptyParenthis) {
+            content = content.replace(/\(\)/g, '( )');
+        }
+        if (options.styleSpacesInsideEmptyBraces) {
+            content = content.replace(/\{\}/g, '{ }');
+        }
+        if (options.styleSpacesInsideEmptyBrackets) {
+            content = content.replace(/\[\]/g, '[ ]');
+        }
     }
 
     if (options.sortUsingsEnabled) {
-        const usingRegex = /(\n? *using\s+[.\w]+;)+/g;
+        const usingRegex = /(\s*using\s+[.\w]+;)+/g;
         const trimSemiColon = /^\s+|;\s*$/;
         content = content.replace(usingRegex, (rawBlock: string) => {
             const items = rawBlock.split('\n').filter((l) => l && l.trim().length > 0);
@@ -84,8 +136,10 @@ export const process = (content: string, options: IFormatConfig): IResult => {
                     }
                 }
             }
-            if (rawBlock[0] === '\n') {
-                items.unshift('');
+            for (let i = 1; i >= 0; i--) {
+                if (rawBlock[i] === '\n') {
+                    items.unshift('');
+                }
             }
             return items.join('\n');
         });
