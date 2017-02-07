@@ -119,8 +119,10 @@ export const process = (content: string, options: IFormatConfig): IResult => {
                     }
                 }
             }
-            if (rawBlock[0] === '\n') {
-                items.unshift('');
+            for (let i = 1; i >= 0; i--) {
+                if (rawBlock[i] === '\n') {
+                    items.unshift('');
+                }
             }
             return items.join('\n');
         });
