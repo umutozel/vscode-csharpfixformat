@@ -51,7 +51,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
         // fix colons.
         content = content.replace(/(\w): (\w|\d)/g, '$1 : $2');
         // fix generics.
-        content = content.replace(/\w\s*< ([^>]+)>/g, s => {
+        content = content.replace(/\w\s*< ([^>\n]+)>/g, s => {
             return s.replace(/\s*<\s*/g, '<').replace(/\s*>\s*/g, '>');
         });
 
