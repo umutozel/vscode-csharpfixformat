@@ -54,7 +54,15 @@ export const process = (content: string, options: IFormatConfig): IResult => {
         content = content.replace(/\w\s*< ([^>\n]+)>/g, s => {
             return s.replace(/\s*<\s*/g, '<').replace(/\s*>\s*/g, '>');
         });
-
+        // fix enums.
+        content = content.replace(/enum[^\{]+\{[^\}]+\}/g, s => {
+            const braceIdx = s.indexOf('{') + 1;
+            const prefix = s.substr(0, braceIdx);
+            s = s.substr(braceIdx);
+            const itemIndent = / +/.exec(s) ![0];
+            s = prefix + s.replace(/( +)(\w.*\n)/g, `${itemIndent}$2`);
+            return s;
+        });
         if (options.styleSpacesBeforeParenthesis) {
             // fix opening parenthesis.
             content = content.replace(/(\w)(\()/g, '$1 $2');
