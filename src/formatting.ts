@@ -11,7 +11,9 @@ export interface IFormatConfig {
     styleBracesOnSameLine: boolean;
     styleBracesAllowInlines: boolean;
     styleSpacesBeforeParenthesis: boolean;
+    styleSpacesAfterParenthesis: boolean;
     styleSpacesBeforeBracket: boolean;
+    styleSpacesAfterBracket: boolean;
     styleSpacesInsideEmptyParenthis: boolean;
     styleSpacesInsideEmptyBraces: boolean;
     styleSpacesInsideEmptyBrackets: boolean;
@@ -66,9 +68,17 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             // fix opening parenthesis.
             content = content.replace(/(\w)(\()/g, '$1 $2');
         }
+        if (options.styleSpacesAfterParenthesis) {
+            // fix closing parenthesis.
+            content = content.replace(/\)([\w\(\[])/g, ') $1');
+        }
         if (options.styleSpacesBeforeBracket) {
             // fix opening bracket.
             content = content.replace(/(\w)(\[)/g, '$1 $2');
+        }
+        if (options.styleSpacesAfterBracket) {
+            // fix closing bracket.
+            content = content.replace(/\]([\w\(\[])/g, '] $1');;
         }
         if (options.styleSpacesInsideEmptyParenthis) {
             content = content.replace(/\(\)/g, '( )');

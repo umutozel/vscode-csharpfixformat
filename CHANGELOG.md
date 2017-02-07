@@ -8,8 +8,12 @@
     > Allow expressions inside braces at one line.
   * "csharpfixformat.style.spaces.beforeParenthesis" option was added.
     > Space before '(' - opening parenthesis.
+  * "csharpfixformat.style.spaces.afterParenthesis" option was added.
+    > Space after ')' - closing parenthesis.
   * "csharpfixformat.style.spaces.beforeBracket" option was added.
     > Space before '[' - opening bracket.
+  * "csharpfixformat.style.spaces.afterBracket" option was added.
+    > Space after ']' - closing bracket.
   * "csharpfixformat.style.spaces.insideEmptyParenthis" option was added.
     > Space inside '()' - empty parenthis.
   * "csharpfixformat.style.spaces.insideEmptyBraces" option was added.

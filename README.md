@@ -19,7 +19,9 @@ All features available through commands menu, context menu in text editor with o
 * `csharpfixformat.style.braces.onSameLine`: Should open braces be kept on expression line (K&R style) or on new line. True by default.
 * `csharpfixformat.style.braces.allowInlines`: Allow expressions inside braces at one line. True by default.
 * `csharpfixformat.style.spaces.beforeParenthesis`: Space before '(' - opening parenthesis. True by default.
+* `csharpfixformat.style.spaces.afterParenthesis`: Space after ')' - closing parenthesis. True by default.
 * `csharpfixformat.style.spaces.beforeBracket`: Space before '[' - opening bracket. True by default.
+* `csharpfixformat.style.spaces.afterBracket`: Space after ']' - closing bracket. True by default.
 * `csharpfixformat.style.spaces.insideEmptyParenthis`: Space inside '()' - empty parenthis. False by default.
 * `csharpfixformat.style.spaces.insideEmptyBraces`: Space inside '{}' - empty braces. True by default.
 * `csharpfixformat.style.spaces.insideEmptyBrackets`: Space inside '[]' - empty brackets. False by default.

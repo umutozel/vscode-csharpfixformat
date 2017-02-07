@@ -20,7 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
                         styleBracesOnSameLine: cfg.get<boolean>('style.braces.onSameLine', true),
                         styleBracesAllowInlines: cfg.get<boolean>('style.braces.allowInlines', true),
                         styleSpacesBeforeParenthesis: cfg.get<boolean>('style.spaces.beforeParenthesis', true),
+                        styleSpacesAfterParenthesis: cfg.get<boolean>('style.spaces.afterParenthesis', true),
                         styleSpacesBeforeBracket: cfg.get<boolean>('style.spaces.beforeBracket', true),
+                        styleSpacesAfterBracket: cfg.get<boolean>('style.spaces.afterBracket', true),
                         styleSpacesInsideEmptyParenthis: cfg.get<boolean>('style.spaces.insideEmptyParenthis', false),
                         styleSpacesInsideEmptyBraces: cfg.get<boolean>('style.spaces.insideEmptyBraces', true),
                         styleSpacesInsideEmptyBrackets: cfg.get<boolean>('style.spaces.insideEmptyBrackets', false)

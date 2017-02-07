@@ -96,10 +96,20 @@
           "default": true,
           "description": "Space before '(' - opening parenthesis."
         },
+        "csharpfixformat.style.spaces.afterParenthesis": {
+          "type": "boolean",
+          "default": true,
+          "description": "Space after ')' - closing parenthesis."
+        },
         "csharpfixformat.style.spaces.beforeBracket": {
           "type": "boolean",
           "default": true,
           "description": "Space before '[' - opening bracket."
+        },
+        "csharpfixformat.style.spaces.afterBracket": {
+          "type": "boolean",
+          "default": true,
+          "description": "Space after ']' - closing bracket."
         },
         "csharpfixformat.style.spaces.insideEmptyParenthis": {
           "type": "boolean",
