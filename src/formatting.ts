@@ -57,11 +57,11 @@ export const process = (content: string, options: IFormatConfig): IResult => {
 
         if (options.styleSpacesBeforeParenthesis) {
             // fix opening parenthesis.
-            content = content.replace(/([^ ])(\()/g, '$1 $2');
+            content = content.replace(/(\w)(\()/g, '$1 $2');
         }
         if (options.styleSpacesBeforeBracket) {
             // fix opening bracket.
-            content = content.replace(/([^ ])(\[)/g, '$1 $2');
+            content = content.replace(/(\w)(\[)/g, '$1 $2');
         }
         if (options.styleSpacesInsideEmptyParenthis) {
             content = content.replace(/\(\)/g, '( )');
@@ -75,7 +75,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
     }
 
     if (options.sortUsingsEnabled) {
-        const usingRegex = /(\n? *using\s+[.\w]+;)+/g;
+        const usingRegex = /(\s*using\s+[.\w]+;)+/g;
         const trimSemiColon = /^\s+|;\s*$/;
         content = content.replace(usingRegex, (rawBlock: string) => {
             const items = rawBlock.split('\n').filter((l) => l && l.trim().length > 0);

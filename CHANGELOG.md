@@ -17,6 +17,7 @@
   * "csharpfixformat.style.spaces.insideEmptyBrackets" option was added.
     > Space inside '[]' - empty brackets.
   * Fix colons / generics formatting.
+  * Fix usings sorting as one block after splitting.
 * v0.0.9
   * Code style code was removed, js-beautify uses instead.
   * Sort using can be disabled.
