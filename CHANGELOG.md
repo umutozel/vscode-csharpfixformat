@@ -1,3 +1,9 @@
+* v0.0.11
+  * All style reformatting respect single line / multiline comments and strings.
+  * Fix for preprocessor directives started from "!".
+  * Fix for "braces.allowInlines"=true for multiple expressions in line.
+  * Fix closing brace indentation for enums.
+  * Improve internal error processing.
 * v0.0.10
   * Keybinding "ctrl+alt+i" was added for formatting activation.
   * "csharpfixformat.style.activateDefaultFormatterAfter" option was added.
