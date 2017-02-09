@@ -8,6 +8,7 @@ export interface IFormatConfig {
     styleEnabled: boolean;
     styleNewLineMaxAmount: number;
     styleIndentPreprocessorIgnored: boolean;
+    styleIndentRegionIgnored: boolean;
     styleBracesOnSameLine: boolean;
     styleBracesAllowInlines: boolean;
     styleSpacesBeforeParenthesis: boolean;
@@ -58,15 +59,21 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             };
 
             // masking preprocessor directives for beautifier - no builtin support for them.
-            content = replaceCode(content, '#(define|if|else|endif)', null, (s) => {
-                return `// __vscode_pp__${s}`;
-            });
+            content = replaceCode(content, '#(define|if|else|endif)', null, s => `// __vscode_pp__${s}`);
+
+            // masking region / endregion directives.
+            content = replaceCode(content, '#(region|endregion)', null, s => `// __vscode_pp_region__${s}`);
 
             content = beautify(content, beautifyOptions);
 
             // restore masked preprocessor directives.
             content = content.replace(/( *)\/\/ __vscode_pp__/gm, (s: string, s1: string) => {
                 return options.styleIndentPreprocessorIgnored ? '' : `${s1}`;
+            });
+
+            // restore masked region / endregion directives.
+            content = content.replace(/( *)\/\/ __vscode_pp_region__/gm, (s: string, s1: string) => {
+                return options.styleIndentRegionIgnored ? '' : `${s1}`;
             });
 
             // fix number suffixes.

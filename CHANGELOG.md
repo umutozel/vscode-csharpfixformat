@@ -1,3 +1,8 @@
+* v0.0.12
+  * "csharpfixformat.style.spaces.beforeBracket" default value changed to false.
+  * Fix for #region / endregion formatting.
+  * "csharpfixformat.style.indent.regionIgnored" option was added.
+    > Should #region / #endregion directives ignore indentation or use it.
 * v0.0.11
   * All style reformatting respect single line / multiline comments and strings.
   * Fix for preprocessor directives started from "!".
