@@ -29,7 +29,7 @@ declare type Func<T, S> = (...args: S[]) => T;
 
 const replaceCode = (source: string, condition: string, flags: string | null, cb: Func<string, string>): string => {
     const regexp = new RegExp(
-        `(\\/\\*(.|\\n)*\\*\\/)|(\\/\\/.*$)|("[^\\\\"]*(?:\\\\.[^\\\\"]*)*")|${condition}`,
+        `(\\/\\*(.|\\n)*\\*\\/)|(\\/\\/.*$)|("[^"]*(?:\\.[^"]*)*")|${condition}`,
         `gm${flags !== null ? flags : ''}`);
     return source.replace(regexp, (s: string, ...args: string[]) => {
         if (s[0] === '"' || (s[0] === '/' && (s[1] === '/' || s[1] === '*'))) {
@@ -83,7 +83,6 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             content = replaceCode(content, '(\\w): (\\w|\\d)', null, (s, s1, s2) => `${s1} : ${s2}`);
 
             // fix nullables.
-            // /(\w+) \?(\s*)([\.,\w][^\n]*)/gm
             content = replaceCode(content, '(\\w+) \\?(\\s*)([\\.,\\w][^\\n]*)', null, (s, s1, s2, s3) => {
                 if (s3[0] === '.' || s3[0] === ',') {
                     return `${s1}?${s3}`;
@@ -100,8 +99,6 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             });
 
             // fix enums.
-            // /(enum[^\{]+\{)((?:.*?\n)*?)(.*?\}$)/gm
-            // /(.*[^\}]$)/gm
             content = replaceCode(content, '(enum[^\\{]+\\{)((?:.*?\\n)*?)(.*?\\}$)', null, (s, s1, s2, s3) => {
                 const indentMatch = /^ +/gm.exec(s2);
                 if (indentMatch == null || indentMatch.length === 0) {
@@ -110,6 +107,11 @@ export const process = (content: string, options: IFormatConfig): IResult => {
                 const itemIndent = indentMatch![0];
                 const d2 = s2.replace(/^ +/gm, itemIndent);
                 return `${s1}${s2.replace(/^ +/gm, itemIndent)}${s3}`;
+            });
+
+            // fix string interpolators.
+            content = replaceCode(content, '\\$ (?=")', null, (s) => {
+                return '$';
             });
 
             // fix opening parenthesis.
