@@ -1115,7 +1115,8 @@ if (!Object.values) {
                     }
                 } else if (last_type === 'TK_SEMICOLON' && flags.mode === MODE.BlockStatement) {
                     // TODO: Should this be for STATEMENT as well?
-                    prefix = 'NEWLINE';
+                    // Leopotam fix. Respect "preserve-inline" mode.
+                    prefix = flags.inline_frame ? 'SPACE' : 'NEWLINE';
                 } else if (last_type === 'TK_SEMICOLON' && is_expression(flags.mode)) {
                     prefix = 'SPACE';
                 } else if (last_type === 'TK_STRING') {
@@ -1890,14 +1891,16 @@ if (!Object.values) {
             var digit_oct = /[01234567]/;
             var digit_hex = /[0123456789abcdefABCDEF]/;
 
-            this.positionable_operators = '!= !== % & && * ** + - / : < << <= == === > >= >> >>> ? ^ | ||'.split(' ');
+            // Leopotam fix. "??" was added.
+            this.positionable_operators = '!= !== % & && * ** + - / : < << <= == === > >= >> >>> ? ?? ^ | ||'.split(' ');
             var punct = this.positionable_operators.concat(
                 // non-positionable operators - these do not follow operator position settings
                 '! %= &= *= **= ++ += , -- -= /= :: <<= = => >>= >>>= ^= |= ~ ...'.split(' '));
 
             // words which should always start on new line.
             this.line_starters = 'continue,try,throw,return,var,let,const,if,switch,case,default,for,while,break,function,import,export'.split(',');
-            var reserved_words = this.line_starters.concat(['do', 'in', 'of', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof', 'yield', 'async', 'await', 'from', 'as']);
+            // Leopotam fix. "is" was added.
+            var reserved_words = this.line_starters.concat(['do', 'in', 'of', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof', 'yield', 'async', 'await', 'from', 'as', 'is']);
 
             //  /* ... */ comment ends with nearest */ or end of file
             var block_comment_pattern = /([\s\S]*?)((?:\*\/)|$)/g;
