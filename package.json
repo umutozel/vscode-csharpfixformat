@@ -3,7 +3,7 @@
   "displayName": "C# FixFormat",
   "description": "Fix format of usings / indents / empty lines",
   "icon": "icon.svg",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "publisher": "Leopotam",
   "engines": {
     "vscode": "^1.9.0"
@@ -76,6 +76,11 @@
           "default": true,
           "description": "Should preprocessor directives ignore indentation or use it."
         },
+        "csharpfixformat.style.indent.regionIgnored": {
+          "type": "boolean",
+          "default": false,
+          "description": "Should #region / #endregion directives ignore indentation or use it."
+        },
         "csharpfixformat.style.activateDefaultFormatterAfter": {
           "type": "boolean",
           "default": false,
@@ -103,7 +108,7 @@
         },
         "csharpfixformat.style.spaces.beforeBracket": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Space before '[' - opening bracket."
         },
         "csharpfixformat.style.spaces.afterBracket": {
