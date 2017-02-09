@@ -2,8 +2,8 @@
 This extension helps to format C# code. When OmniSharp will support all features - will be deprecated.
 
 ## Features
-All features available through commands menu, context menu in text editor with option "CSharp: Fix format" or through keybinding "ctrl+alt+i".
-  * Sort usings in alphabetical order at opened C# file. Doubles will be removed automatically.
+All features available through commands menu, context menu in text editor with option "CSharp: Fix format" or through keybinding "ctrl+alt+i" after opening C# file.
+  * Sort usings in alphabetical order. Doubles will be removed automatically.
   * Fix indent size for all lines (omnisharp still cant do it for wrapped lines).
   * Cleanup empty lines with allowed limit in row.
 

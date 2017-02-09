@@ -1,3 +1,6 @@
+* v0.0.13
+  * Fix for string interpolators formatting.
+  * Code cleanup.
 * v0.0.12
   * "csharpfixformat.style.spaces.beforeBracket" default value changed to false.
   * Fix for #region / endregion formatting.
