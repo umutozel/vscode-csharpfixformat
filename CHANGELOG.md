@@ -1,3 +1,8 @@
+* v0.0.14
+  * Fix for escaped strings formatting (double quotes and @ prefix).
+  * /\* fixformat ignore:start \*/ and /\* fixformat ignore:end \*/ directives added
+  for ignore formatting between them.
+  * Refactoring.
 * v0.0.13
   * Fix for string interpolators formatting.
   * Code cleanup.

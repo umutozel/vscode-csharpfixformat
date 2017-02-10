@@ -1908,9 +1908,9 @@ if (!Object.values) {
             // comment ends just before nearest linefeed or end of file
             var comment_pattern = /([^\n\r\u2028\u2029]*)/g;
 
-            var directives_block_pattern = /\/\* beautify( \w+[:]\w+)+ \*\//g;
-            var directive_pattern = / (\w+)[:](\w+)/g;
-            var directives_end_ignore_pattern = /([\s\S]*?)((?:\/\*\sbeautify\signore:end\s\*\/)|$)/g;
+            var directives_block_pattern = /\/\*\s*?fixformat( +\w+[:]\w+)+\s*?\*\//g;
+            var directive_pattern = / +(\w+)[:](\w+)/g;
+            var directives_end_ignore_pattern = /([\s\S]*?)((?:\/\*\s*?fixformat +ignore:end\s*?\*\/)|$)/g;
 
             var template_pattern = /((<\?php|<\?=)[\s\S]*?\?>)|(<%[\s\S]*?%>)/g;
 
