@@ -33,6 +33,7 @@ const validCodePatterns: RegExp[] = [
     /(\/\/.*?$)/gm,
     /("(?:[^"\\]|\\.|"")*")/gm
 ];
+
 const validCodePatternString = validCodePatterns.map<string>(r => r.source).join('|');
 
 const replaceCode = (source: string, condition: RegExp, cb: Func<string, string>): string => {
@@ -125,9 +126,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             });
 
             // fix string interpolators / escaped strings.
-            content = replaceCode(content, /(\$|@) (?=")/gm, (s, s1) => {
-                return s1;
-            });
+            content = replaceCode(content, /(\$|@) (?=")/gm, (s, s1) => s1);
 
             // fix opening parenthesis.
             if (options.styleSpacesBeforeParenthesis) {
