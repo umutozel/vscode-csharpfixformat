@@ -27,15 +27,22 @@ export interface IResult {
 
 declare type Func<T, S> = (...args: S[]) => T;
 
-const replaceCode = (source: string, condition: string, flags: string | null, cb: Func<string, string>): string => {
-    const regexp = new RegExp(
-        `(\\/\\*(.|\\n)*\\*\\/)|(\\/\\/.*$)|("[^"]*(?:\\.[^"]*)*")|${condition}`,
-        `gm${flags !== null ? flags : ''}`);
+const validCodePatterns: RegExp[] = [
+    /(\/\*\s*?fixformat +ignore:start\s*?\*\/[\s\S]*?\/\*\s*?fixformat +ignore:end\s*?\*\/)/gm,
+    /(\/\*(?:.|\n)*?\*\/)/gm,
+    /(\/\/.*?$)/gm,
+    /("(?:[^"\\]|\\.|"")*")/gm
+];
+const validCodePatternString = validCodePatterns.map<string>(r => r.source).join('|');
+
+const replaceCode = (source: string, condition: RegExp, cb: Func<string, string>): string => {
+    const flags = condition.flags.replace(/[gm]/g, '');
+    const regexp = new RegExp(`${validCodePatternString}|(${condition.source})`, `gm${flags}`);
     return source.replace(regexp, (s: string, ...args: string[]) => {
         if (s[0] === '"' || (s[0] === '/' && (s[1] === '/' || s[1] === '*'))) {
             return s;
         }
-        return cb(s, ...args.slice(4));
+        return cb(s, ...args.slice(validCodePatterns.length + 1));
     });
 };
 
@@ -59,10 +66,15 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             };
 
             // masking preprocessor directives for beautifier - no builtin support for them.
-            content = replaceCode(content, '#(define|if|else|endif)', null, s => `// __vscode_pp__${s}`);
+            content = replaceCode(content, /#(?:define|if|else|endif)/gm, s => `// __vscode_pp__${s}`);
 
             // masking region / endregion directives.
-            content = replaceCode(content, '#(region|endregion)', null, s => `// __vscode_pp_region__${s}`);
+            content = replaceCode(content, /#(region|endregion)/gm, s => `// __vscode_pp_region__${s}`);
+
+            // masking content of escaped strings.
+            content = content.replace(/"(?:[^"\\]|\\.|"")*"/gm, s => {
+                return s.replace('""', '__vscode_pp_dq__');
+            });
 
             content = beautify(content, beautifyOptions);
 
@@ -76,14 +88,17 @@ export const process = (content: string, options: IFormatConfig): IResult => {
                 return options.styleIndentRegionIgnored ? '' : `${s1}`;
             });
 
+            // restore masked content of escaped strings.
+            content = content.replace(/__vscode_pp_dq__/gm, '""');
+
             // fix number suffixes.
-            content = replaceCode(content, '(\\d) (f|d|u|l|m|ul|lu])([^\\w])', 'i', (s, s1, s2, s3) => `${s1}${s2}${s3}`);
+            content = replaceCode(content, /(\d) (f|d|u|l|m|ul|lu])([^\w])/gmi, (s, s1, s2, s3) => `${s1}${s2}${s3}`);
 
             // fix colons.
-            content = replaceCode(content, '(\\w): (\\w|\\d)', null, (s, s1, s2) => `${s1} : ${s2}`);
+            content = replaceCode(content, /(\w): (\w|\d)/gm, (s, s1, s2) => `${s1} : ${s2}`);
 
             // fix nullables.
-            content = replaceCode(content, '(\\w+) \\?(\\s*)([\\.,\\w][^\\n]*)', null, (s, s1, s2, s3) => {
+            content = replaceCode(content, /(\w+) \?(\s*)([\.,\w][^\n]*)/gm, (s, s1, s2, s3) => {
                 if (s3[0] === '.' || s3[0] === ',') {
                     return `${s1}?${s3}`;
                 }
@@ -94,12 +109,12 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             });
 
             // fix generics.
-            content = replaceCode(content, '\\w\\s*< ([^>\\n]+)>', null, s => {
+            content = replaceCode(content, /\w\s*< ([^>\n]+)>/gm, s => {
                 return s.replace(/\s*<\s*/g, '<').replace(/\s*>\s*/g, '>');
             });
 
             // fix enums.
-            content = replaceCode(content, '(enum[^\\{]+\\{)((?:.*?\\n)*?)(.*?\\}$)', null, (s, s1, s2, s3) => {
+            content = replaceCode(content, /(enum[^\{]+\{)((?:.*?\n)*?)(.*?\}$)/gm, (s, s1, s2, s3) => {
                 const indentMatch = /^ +/gm.exec(s2);
                 if (indentMatch == null || indentMatch.length === 0) {
                     return s;
@@ -109,44 +124,44 @@ export const process = (content: string, options: IFormatConfig): IResult => {
                 return `${s1}${s2.replace(/^ +/gm, itemIndent)}${s3}`;
             });
 
-            // fix string interpolators.
-            content = replaceCode(content, '\\$ (?=")', null, (s) => {
-                return '$';
+            // fix string interpolators / escaped strings.
+            content = replaceCode(content, /(\$|@) (?=")/gm, (s, s1) => {
+                return s1;
             });
 
             // fix opening parenthesis.
             if (options.styleSpacesBeforeParenthesis) {
-                content = replaceCode(content, '(\\w)\\(', null, (s, s1) => `${s1} (`);
+                content = replaceCode(content, /(\w)\(/gm, (s, s1) => `${s1} (`);
             }
 
             // fix closing parenthesis.
             if (options.styleSpacesAfterParenthesis) {
-                content = replaceCode(content, '\\)([\\w\(\\[])', null, (s, s1) => `) ${s1}`);
+                content = replaceCode(content, /\)([\w\(\[])/gm, (s, s1) => `) ${s1}`);
             }
 
             // fix opening bracket.
             if (options.styleSpacesBeforeBracket) {
-                content = replaceCode(content, '(\\w)\\[', null, (s, s1) => `${s1} [`);
+                content = replaceCode(content, /(\w)\[/gm, (s, s1) => `${s1} [`);
             }
 
             // fix closing bracket.
             if (options.styleSpacesAfterBracket) {
-                content = replaceCode(content, '\\]([\\w\(\\[])', null, (s, s1) => `] ${s1}`);
+                content = replaceCode(content, /\]([\w\(\[])/gm, (s, s1) => `] ${s1}`);
             }
             if (options.styleSpacesInsideEmptyParenthis) {
-                content = replaceCode(content, '\\(\\)', null, s => '( )');
+                content = replaceCode(content, /\(\)/gm, s => '( )');
             }
             if (options.styleSpacesInsideEmptyBraces) {
-                content = replaceCode(content, '\\{\\}', null, s => '{ }');
+                content = replaceCode(content, /\{\}/gm, s => '{ }');
             }
             if (options.styleSpacesInsideEmptyBrackets) {
-                content = replaceCode(content, '\\[\\]', null, s => '[ ]');
+                content = replaceCode(content, /\[\]/gm, s => '[ ]');
             }
         }
 
         if (options.sortUsingsEnabled) {
             const trimSemiColon = /^\s+|;\s*$/;
-            content = replaceCode(content, '(\\s*using\\s+[.\\w]+;)+', null, rawBlock => {
+            content = replaceCode(content, /(\s*using\s+[.\w]+;)+/gm, rawBlock => {
                 const items = rawBlock.split('\n').filter((l) => l && l.trim().length > 0);
                 items.sort((a: string, b: string) => {
                     let res = 0;

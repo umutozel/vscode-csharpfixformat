@@ -3,7 +3,7 @@
   "displayName": "C# FixFormat",
   "description": "Fix format of usings / indents / braces / empty lines",
   "icon": "icon.svg",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "publisher": "Leopotam",
   "engines": {
     "vscode": "^1.9.0"

@@ -7,6 +7,13 @@ All features available through commands menu, context menu in text editor with o
   * Fix indent size for all lines (omnisharp still cant do it for wrapped lines).
   * Cleanup empty lines with allowed limit in row.
 
+Formatting can be ignored for any code with wrapping to directives:
+```
+/* fixformat ignore:start */
+var test    =        i().  willNotBeFormatted     []   ;
+/* fixformat ignore:end */
+```
+
 ## Extension Settings
 
 * `csharpfixformat.sort.usings.enabled`: Should usings be sorted or not. True by default.
