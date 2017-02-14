@@ -1,6 +1,7 @@
 * v0.0.15
   * Fix force new line for yield.
   * Fix force new line for default(T).
+  * Fix processing double quotes inside string.
 * v0.0.14
   * Fix for escaped strings formatting (double quotes and @ prefix).
   * /\* fixformat ignore:start \*/ and /\* fixformat ignore:end \*/ directives added
