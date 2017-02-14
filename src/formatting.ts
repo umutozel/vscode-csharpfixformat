@@ -74,7 +74,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
 
             // masking content of escaped strings.
             content = content.replace(/"(?:[^"\\]|\\.|"")*"/gm, s => {
-                return s.replace('""', '__vscode_pp_dq__');
+                return s.replace(/([^\\])""/g, '$1__vscode_pp_dq__');
             });
 
             content = beautify(content, beautifyOptions);
