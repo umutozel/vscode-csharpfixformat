@@ -110,8 +110,8 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             });
 
             // fix generics.
-            content = replaceCode(content, /\w\s*< ([^>\n]+)>/gm, s => {
-                return s.replace(/\s*<\s*/g, '<').replace(/\s*>\s*/g, '>');
+            content = replaceCode(content, /\w\s*?\<([^\>;]+)\>/gm, s => {
+                return s.replace(/\s+/gm, ' ').replace(/\s*?\<\s*/gm, '<').replace(/\s*?\>\s*/gm, '>');
             });
 
             // fix enums.

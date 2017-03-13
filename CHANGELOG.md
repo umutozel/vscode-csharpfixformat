@@ -1,3 +1,6 @@
+* v0.0.16
+  * Fix generics processing.
+  * Readme.md badges.
 * v0.0.15
   * Fix force new line for yield.
   * Fix force new line for default(T).
