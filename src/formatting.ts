@@ -110,7 +110,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             });
 
             // fix generics.
-            content = replaceCode(content, /\w\s*?\<([^\>;]+)\>/gm, s => {
+            content = replaceCode(content, /\w\s*?\<([^\>;]+)\>(?:[^=])/gm, s => {
                 return s.replace(/\s+/gm, ' ').replace(/\s*?\<\s*/gm, '<').replace(/\s*?\>\s*/gm, '>');
             });
 
@@ -147,12 +147,20 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             if (options.styleSpacesAfterBracket) {
                 content = replaceCode(content, /\]([\w\(\[])/gm, (s, s1) => `] ${s1}`);
             }
+
+            // fix ">[)\]]" pairs.
+            content = replaceCode(content, /\> ([\)\]])/gm, (s, s1) => {
+                return `>${s1}`;
+            });
+
             if (options.styleSpacesInsideEmptyParenthis) {
                 content = replaceCode(content, /\(\)/gm, s => '( )');
             }
+
             if (options.styleSpacesInsideEmptyBraces) {
                 content = replaceCode(content, /\{\}/gm, s => '{ }');
             }
+
             if (options.styleSpacesInsideEmptyBrackets) {
                 content = replaceCode(content, /\[\]/gm, s => '[ ]');
             }

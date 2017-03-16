@@ -1,3 +1,6 @@
+* v0.0.17
+  * Fix invalid generics processing on complex condition expressions.
+  * Fix formatting of "> )" and "> ]" pairs.
 * v0.0.16
   * Fix generics processing.
   * Readme.md badges.
