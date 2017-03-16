@@ -13,6 +13,7 @@ export interface IFormatConfig {
     styleBracesAllowInlines: boolean;
     styleSpacesBeforeParenthesis: boolean;
     styleSpacesAfterParenthesis: boolean;
+    styleSpacesBeforeIndexerBracket: boolean;
     styleSpacesBeforeBracket: boolean;
     styleSpacesAfterBracket: boolean;
     styleSpacesInsideEmptyParenthis: boolean;
@@ -95,9 +96,6 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             // fix number suffixes.
             content = replaceCode(content, /(\d) (f|d|u|l|m|ul|lu])([^\w])/gmi, (s, s1, s2, s3) => `${s1}${s2}${s3}`);
 
-            // fix colons.
-            content = replaceCode(content, /(\w): (\w|\d)/gm, (s, s1, s2) => `${s1} : ${s2}`);
-
             // fix nullables.
             content = replaceCode(content, /(\w+) \?(\s*)([\.,\w][^\n]*)/gm, (s, s1, s2, s3) => {
                 if (s3[0] === '.' || s3[0] === ',') {
@@ -110,8 +108,8 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             });
 
             // fix generics.
-            content = replaceCode(content, /\w\s*?\<([^\>;]+)\>/gm, s => {
-                return s.replace(/\s+/gm, ' ').replace(/\s*?\<\s*/gm, '<').replace(/\s*?\>\s*/gm, '>');
+            content = replaceCode(content, /\w\s*?\<([^\>\|\&;]+)\>(?:[^\=])/gm, s => {
+                return s.replace(/\s+/gm, ' ').replace(/\s*?\<\s*/gm, '<').replace(/\s*?\>/gm, '>');
             });
 
             // fix enums.
@@ -128,33 +126,48 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             // fix string interpolators / escaped strings.
             content = replaceCode(content, /(\$|@) (?=")/gm, (s, s1) => s1);
 
+            // fix colons.
+            content = replaceCode(content, /([\w\)\]\>]): (\w)/gm, (s, s1, s2) => `${s1} : ${s2}`);
+
             // fix opening parenthesis.
             if (options.styleSpacesBeforeParenthesis) {
-                content = replaceCode(content, /(\w)\(/gm, (s, s1) => `${s1} (`);
-            }
-
-            // fix closing parenthesis.
-            if (options.styleSpacesAfterParenthesis) {
-                content = replaceCode(content, /\)([\w\(\[])/gm, (s, s1) => `) ${s1}`);
+                content = replaceCode(content, /([\w\)\]\>])\(/gm, (s, s1) => `${s1} (`);
             }
 
             // fix opening bracket.
             if (options.styleSpacesBeforeBracket) {
-                content = replaceCode(content, /(\w)\[/gm, (s, s1) => `${s1} [`);
+                content = replaceCode(content, /([\w\)\]\>])\[/gm, (s, s1) => `${s1} [`);
+            }
+
+            // fix closing parenthesis.
+            if (options.styleSpacesAfterParenthesis) {
+                content = replaceCode(content, /\)([\w])/gm, (s, s1) => `) ${s1}`);
             }
 
             // fix closing bracket.
             if (options.styleSpacesAfterBracket) {
-                content = replaceCode(content, /\]([\w\(\[])/gm, (s, s1) => `] ${s1}`);
+                content = replaceCode(content, /\]([\w])/gm, (s, s1) => `] ${s1}`);
             }
+
+            // fix ">[)\];]" pairs.
+            content = replaceCode(content, /\> ([\)\];])/gm, (s, s1) => {
+                return `>${s1}`;
+            });
+
             if (options.styleSpacesInsideEmptyParenthis) {
                 content = replaceCode(content, /\(\)/gm, s => '( )');
             }
+
             if (options.styleSpacesInsideEmptyBraces) {
                 content = replaceCode(content, /\{\}/gm, s => '{ }');
             }
+
             if (options.styleSpacesInsideEmptyBrackets) {
                 content = replaceCode(content, /\[\]/gm, s => '[ ]');
+            }
+
+            if (options.styleSpacesBeforeIndexerBracket) {
+                content = replaceCode(content, /this\[/gm, s => 'this [');
             }
         }
 

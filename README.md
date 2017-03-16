@@ -34,6 +34,7 @@ var test    =        i().  willNotBeFormatted     []   ;
 * `csharpfixformat.style.braces.allowInlines`: Allow expressions inside braces at one line. True by default.
 * `csharpfixformat.style.spaces.beforeParenthesis`: Space before '(' - opening parenthesis. True by default.
 * `csharpfixformat.style.spaces.afterParenthesis`: Space after ')' - closing parenthesis. True by default.
+* `csharpfixformat.style.spaces.beforeIndexerBracket`: Override spaces.beforeBracket rule for indexer sequence 'this['. True by default.
 * `csharpfixformat.style.spaces.beforeBracket`: Space before '[' - opening bracket. False by default.
 * `csharpfixformat.style.spaces.afterBracket`: Space after ']' - closing bracket. True by default.
 * `csharpfixformat.style.spaces.insideEmptyParenthis`: Space inside '()' - empty parenthis. False by default.

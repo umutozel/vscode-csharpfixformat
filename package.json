@@ -3,13 +3,15 @@
   "displayName": "C# FixFormat",
   "description": "Fix format of usings / indents / braces / empty lines",
   "icon": "icon.svg",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "publisher": "Leopotam",
   "engines": {
     "vscode": "^1.9.0"
   },
   "categories": [
-    "Formatters"
+    "Formatters",
+    "Languages",
+    "Other"
   ],
   "activationEvents": [
     "onCommand:csharpfixformat.process"
@@ -105,6 +107,11 @@
           "type": "boolean",
           "default": true,
           "description": "Space after ')' - closing parenthesis."
+        },
+        "csharpfixformat.style.spaces.beforeIndexerBracket": {
+          "type": "boolean",
+          "default": true,
+          "description": "Override spaces.beforeBracket rule for indexer sequence 'this['."
         },
         "csharpfixformat.style.spaces.beforeBracket": {
           "type": "boolean",

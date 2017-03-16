@@ -1,3 +1,8 @@
+* v0.0.17
+  * Fix invalid generics processing on complex condition expressions.
+  * Fix formatting of "> )", "> ]", "> (", "> [" and "> ;" pairs.
+  * "csharpfixformat.csharpfixformat.style.spaces.beforeIndexerBracket" option was added.
+    > Override spaces.beforeBracket rule for indexer sequence 'this['.
 * v0.0.16
   * Fix generics processing.
   * Readme.md badges.
