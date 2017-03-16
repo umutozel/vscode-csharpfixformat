@@ -10,7 +10,8 @@
   },
   "categories": [
     "Formatters",
-    "Languages"
+    "Languages",
+    "Other"
   ],
   "activationEvents": [
     "onCommand:csharpfixformat.process"
@@ -106,6 +107,11 @@
           "type": "boolean",
           "default": true,
           "description": "Space after ')' - closing parenthesis."
+        },
+        "csharpfixformat.style.spaces.beforeIndexerBracket": {
+          "type": "boolean",
+          "default": true,
+          "description": "Override spaces.beforeBracket rule for indexer sequence 'this['."
         },
         "csharpfixformat.style.spaces.beforeBracket": {
           "type": "boolean",

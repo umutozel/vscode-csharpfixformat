@@ -22,6 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
                         styleBracesAllowInlines: cfg.get<boolean>('style.braces.allowInlines', true),
                         styleSpacesBeforeParenthesis: cfg.get<boolean>('style.spaces.beforeParenthesis', true),
                         styleSpacesAfterParenthesis: cfg.get<boolean>('style.spaces.afterParenthesis', true),
+                        styleSpacesBeforeIndexerBracket: cfg.get<boolean>('style.spaces.beforeIndexerBracket', true),
                         styleSpacesBeforeBracket: cfg.get<boolean>('style.spaces.beforeBracket', false),
                         styleSpacesAfterBracket: cfg.get<boolean>('style.spaces.afterBracket', true),
                         styleSpacesInsideEmptyParenthis: cfg.get<boolean>('style.spaces.insideEmptyParenthis', false),
