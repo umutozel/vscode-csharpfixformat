@@ -1899,9 +1899,9 @@ if (!Object.values) {
                 '! %= &= *= **= ++ += , -- -= /= :: <<= = => >>= >>>= ^= |= ~ ...'.split(' '));
 
             // words which should always start on new line.
-            this.line_starters = 'continue,try,throw,return,var,let,const,if,switch,case,for,while,break,function,import,export'.split(',');
-            // Leopotam fix. "is" was added. "default" moved from line_starters.
-            var reserved_words = this.line_starters.concat(['do', 'in', 'of', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof', 'yield', 'async', 'await', 'from', 'as', 'is', 'default']);
+            this.line_starters = 'continue,try,throw,return,var,let,if,switch,case,for,while,break,function,import,export'.split(',');
+            // Leopotam fix. "is" was added. "default" and "const" moved from line_starters.
+            var reserved_words = this.line_starters.concat(['do', 'in', 'of', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof', 'yield', 'async', 'await', 'from', 'as', 'is', 'default', 'const']);
 
             //  /* ... */ comment ends with nearest */ or end of file
             var block_comment_pattern = /([\s\S]*?)((?:\*\/)|$)/g;
