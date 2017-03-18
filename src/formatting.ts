@@ -32,6 +32,7 @@ const validCodePatterns: RegExp[] = [
     /(\/\*\s*?fixformat +ignore:start\s*?\*\/[\s\S]*?\/\*\s*?fixformat +ignore:end\s*?\*\/)/gm,
     /(\/\*(?:.|\n)*?\*\/)/gm,
     /(\/\/.*?$)/gm,
+    /('(?:[^'\\]|\\.)*')/gm,
     /("(?:[^"\\]|\\.|"")*")/gm
 ];
 
@@ -41,7 +42,7 @@ const replaceCode = (source: string, condition: RegExp, cb: Func<string, string>
     const flags = condition.flags.replace(/[gm]/g, '');
     const regexp = new RegExp(`${validCodePatternString}|(${condition.source})`, `gm${flags}`);
     return source.replace(regexp, (s: string, ...args: string[]) => {
-        if (s[0] === '"' || (s[0] === '/' && (s[1] === '/' || s[1] === '*'))) {
+        if (s[0] === '"' || s[0] === '\'' || (s[0] === '/' && (s[1] === '/' || s[1] === '*'))) {
             return s;
         }
         return cb(s, ...args.slice(validCodePatterns.length + 1));
@@ -74,7 +75,7 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             content = replaceCode(content, /#(region|endregion)/gm, s => `// __vscode_pp_region__${s}`);
 
             // masking content of escaped strings.
-            content = content.replace(/"(?:[^"\\]|\\.|"")*"/gm, s => {
+            content = content.replace(/(?:[^"\\])"(?:[^"\\]|\\.|"")*"/gm, s => {
                 return s.replace(/([^\\])""/g, '$1__vscode_pp_dq__');
             });
 
