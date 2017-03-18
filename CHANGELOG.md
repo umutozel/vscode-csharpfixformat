@@ -1,3 +1,6 @@
+* v0.0.18
+  * Fix const declaration with access modifier.
+  * Improve string / char sequences recognition.
 * v0.0.17
   * Fix invalid generics processing on complex condition expressions.
   * Fix formatting of "> )", "> ]", "> (", "> [" and "> ;" pairs.
