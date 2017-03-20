@@ -130,6 +130,11 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             // fix colons.
             content = replaceCode(content, /([\w\)\]\>]): (\w)/gm, (s, s1, s2) => `${s1} : ${s2}`);
 
+            // fix ">[\(\)\[\];]" pairs.
+            content = replaceCode(content, /\> ([\(\)\[\];])/gm, (s, s1) => {
+                return `>${s1}`;
+            });
+
             // fix opening parenthesis.
             if (options.styleSpacesBeforeParenthesis) {
                 content = replaceCode(content, /([\w\)\]\>])\(/gm, (s, s1) => `${s1} (`);
@@ -149,11 +154,6 @@ export const process = (content: string, options: IFormatConfig): IResult => {
             if (options.styleSpacesAfterBracket) {
                 content = replaceCode(content, /\]([\w])/gm, (s, s1) => `] ${s1}`);
             }
-
-            // fix ">[)\];]" pairs.
-            content = replaceCode(content, /\> ([\)\];])/gm, (s, s1) => {
-                return `>${s1}`;
-            });
 
             if (options.styleSpacesInsideEmptyParenthis) {
                 content = replaceCode(content, /\(\)/gm, s => '( )');
